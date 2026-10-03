@@ -26,7 +26,7 @@
     .main-card {
       background: #1c2541;
       border-radius: 20px;
-      padding: 30px 20px;
+      padding: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       text-align: center;
       width: 100%;
@@ -37,7 +37,6 @@
     .player-wrapper {
       position: relative;
       width: 100%;
-      margin-top: 15px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -54,17 +53,17 @@
     /* Maschera con il tuo logo */
     .logo-overlay {
       position: absolute;
-      top: 55px; /* Regola la coordinata se serve alzare o abbassare il logo */
+      top: 55px; /* Regola se necessario alzare o abbassare il logo */
       left: 50%;
       transform: translateX(-50%);
       width: 150px; /* Dimensione della maschera per coprire 4U */
       height: 150px;
       border-radius: 50%;
-      background-image: url('webradioprovalogo.jpeg'); /* File aggiornato in .jpeg */
+      background-image: url('webradioprovalogo.jpeg');
       background-size: cover;
       background-position: center;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-      pointer-events: none; /* Lascia passare i clic ai tasti dell'iframe */
+      pointer-events: none; /* Lascia passare i clic ai tasti sottostanti */
       z-index: 10;
     }
   </style>
@@ -74,7 +73,7 @@
   <div class="main-card">
     <div class="player-wrapper">
       <div class="logo-overlay"></div>
-      <iframe src="https://eu8.fastcast4u.com/player/webradioprova/"></iframe>
+      <iframe src="https://eu8.fastcast4u.com/start/webradioprova/"></iframe>
     </div>
   </div>
 
