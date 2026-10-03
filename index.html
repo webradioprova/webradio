@@ -26,53 +26,50 @@
     .main-card {
       background: #1c2541;
       border-radius: 20px;
-      padding: 20px;
+      padding: 30px 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       text-align: center;
       width: 100%;
       max-width: 480px;
     }
 
-    /* Contenitore player con dimensioni fisse per calcolare la sovrapposizione */
-    .player-wrapper {
-      position: relative;
-      width: 100%;
-      height: 380px;
-      overflow: hidden;
-      border-radius: 12px;
+    .audio-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
     }
 
-    /* Frame nativo di FastCast4u */
-    .player-wrapper iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    /* Maschera logo centrale per coprire il watermark 4U */
-    .logo-overlay {
-      position: absolute;
-      top: 32%; /* Posizionamento verticale al centro della grafica */
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 125px;
-      height: 125px;
+    .logo-img {
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
-      background-image: url('webradioprovalogo.jpeg');
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-      pointer-events: none; /* Permette ai clic sui tasti di passare al sotto */
-      z-index: 10;
+      object-fit: cover;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      border: 3px solid #3a506b;
+    }
+
+    audio {
+      width: 100%;
+      max-width: 350px;
+      border-radius: 30px;
+      outline: none;
     }
   </style>
 </head>
 <body>
 
   <div class="main-card">
-    <div class="player-wrapper">
-      <div class="logo-overlay"></div>
-      <iframe src="https://eu8.fastcast4u.com/player/webradioprova"></iframe>
+    <div class="audio-container">
+      <img src="webradioprovalogo.jpeg" alt="Web Radio Prova" class="logo-img">
+      
+      <!-- Utilizzo del proxy SSL di FastCast4u per superare il blocco HTTPS -->
+      <audio controls>
+        <source src="https://eu8.fastcast4u.com/proxy/webradioprova?mp=/stream" type="audio/mpeg">
+        <source src="http://eu8.fastcast4u.com:4796/;" type="audio/mpeg">
+        Il tuo browser non supporta il lettore audio.
+      </audio>
     </div>
   </div>
 
