@@ -210,7 +210,18 @@
       gap: 10px;
       width: 80%;
       color: #a0aec0;
-      font-size: 14px;
+      font-size: 16px;
+    }
+
+    .volume-icon {
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .volume-icon:hover {
+      transform: scale(1.2);
+      color: #4ea8de;
     }
 
     .volume-slider {
@@ -290,9 +301,9 @@
         <button id="play-btn" class="play-btn" aria-label="Riproduci">▶</button>
         
         <div class="volume-container">
-          <span>🔈</span>
+          <span id="vol-mute-btn" class="volume-icon" title="Silenzia/Ripristina audio">🔈</span>
           <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="0.8">
-          <span>🔊</span>
+          <span id="vol-max-btn" class="volume-icon" title="Volume Massimo">🔊</span>
         </div>
       </div>
 
@@ -313,9 +324,13 @@
     const player = document.getElementById('radio-player');
     const playBtn = document.getElementById('play-btn');
     const volumeSlider = document.getElementById('volume-slider');
+    const volMuteBtn = document.getElementById('vol-mute-btn');
+    const volMaxBtn = document.getElementById('vol-max-btn');
     const container = document.getElementById('audio-container');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
+
+    let previousVolume = 0.8;
 
     playBtn.addEventListener('click', () => {
       if (player.paused) {
@@ -334,8 +349,37 @@
       }
     });
 
+    // Controllo Slider Volume
     volumeSlider.addEventListener('input', (e) => {
       player.volume = e.target.value;
+      if (e.target.value > 0) {
+        previousVolume = e.target.value;
+        volMuteBtn.textContent = '🔈';
+      } else {
+        volMuteBtn.textContent = '🔇';
+      }
+    });
+
+    // Pulsante Mute (click su icona altoparlante sinistro)
+    volMuteBtn.addEventListener('click', () => {
+      if (player.volume > 0) {
+        previousVolume = player.volume;
+        player.volume = 0;
+        volumeSlider.value = 0;
+        volMuteBtn.textContent = '🔇';
+      } else {
+        player.volume = previousVolume || 0.8;
+        volumeSlider.value = player.volume;
+        volMuteBtn.textContent = '🔈';
+      }
+    });
+
+    // Pulsante Max Volume (click su icona altoparlante destro)
+    volMaxBtn.addEventListener('click', () => {
+      player.volume = 1;
+      volumeSlider.value = 1;
+      previousVolume = 1;
+      volMuteBtn.textContent = '🔈';
     });
 
     async function updateNowPlaying() {
