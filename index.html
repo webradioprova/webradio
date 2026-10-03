@@ -640,18 +640,23 @@
       }
     }
 
-    // Contatore Visite con CounterAPI (Mostra solo il numero)
-    async function initVisitorCounter() {
+    // Contatore Visite con chiamata JSONP
+    function initVisitorCounter() {
       const visitCountEl = document.getElementById('visit-count');
-      try {
-        const response = await fetch('https://counterapi.com/api/webradioprova.github.io/hits');
-        const data = await response.json();
+      const script = document.createElement('script');
+      
+      window.updateCounterValue = function(data) {
         if (data && data.value !== undefined) {
           visitCountEl.textContent = data.value;
         }
-      } catch (err) {
-        console.log('Errore contatore:', err);
-      }
+      };
+
+      script.src = 'https://counterapi.com/api/webradioprova.github.io/hits?callback=updateCounterValue';
+      script.onerror = function() {
+        console.log('Impossibile caricare il contatore');
+      };
+      
+      document.body.appendChild(script);
     }
 
     updateNowPlaying();
