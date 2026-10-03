@@ -41,7 +41,25 @@
 
     /* Effetto alone fluorescente quando la radio è in play */
     .main-card.playing {
-      box-shadow: 0 0 30px rgba(78, 168, 222, 0.25), 0 15px 35px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 35px rgba(78, 168, 222, 0.3), 0 15px 35px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Tasto Schermo Intero in alto a destra */
+    .fullscreen-btn {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #a0aec0;
+      font-size: 16px;
+      cursor: pointer;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    .fullscreen-btn:hover {
+      color: #4ea8de;
+      transform: scale(1.15);
     }
 
     /* Badge LIVE */
@@ -257,9 +275,31 @@
       transform: scale(1.2);
     }
 
+    /* Pulsante Condividi */
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(58, 80, 107, 0.4);
+      border: 1px solid #3a506b;
+      color: #a0aec0;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.2s ease;
+    }
+
+    .share-btn:hover {
+      background: #3a506b;
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
     /* Footer Crediti FastCast4u */
     .footer-credits {
-      margin-top: 20px;
+      margin-top: 15px;
       font-size: 0.72rem;
       color: #718096;
       letter-spacing: 0.8px;
@@ -281,6 +321,9 @@
 <body>
 
   <div class="main-card">
+    <!-- Pulsante Fullscreen -->
+    <button class="fullscreen-btn" id="fullscreen-btn" title="Schermo intero">⛶</button>
+
     <!-- Indicatore di Stato Live -->
     <div class="live-badge">
       <span class="live-dot"></span>
@@ -324,6 +367,9 @@
       </audio>
     </div>
 
+    <!-- Tasto Condividi Radio -->
+    <button class="share-btn" id="share-btn">🔗 Condividi Radio</button>
+
     <!-- Menzione FastCast4u -->
     <div class="footer-credits">
       Powered by <a href="https://fastcast4u.com" target="_blank" rel="noopener">FastCast4u</a>
@@ -338,6 +384,8 @@
     const volMaxBtn = document.getElementById('vol-max-btn');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
+    const shareBtn = document.getElementById('share-btn');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
 
     let previousVolume = 0.8;
 
@@ -369,7 +417,7 @@
       }
     });
 
-    // Pulsante Mute (click su icona altoparlante sinistro)
+    // Pulsante Mute
     volMuteBtn.addEventListener('click', () => {
       if (player.volume > 0) {
         previousVolume = player.volume;
@@ -383,12 +431,35 @@
       }
     });
 
-    // Pulsante Max Volume (click su icona altoparlante destro)
+    // Pulsante Max Volume
     volMaxBtn.addEventListener('click', () => {
       player.volume = 1;
       volumeSlider.value = 1;
       previousVolume = 1;
       volMuteBtn.textContent = '🔈';
+    });
+
+    // Funzione Condividi
+    shareBtn.addEventListener('click', () => {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Web Radio Prova',
+          text: 'Ascolta Web Radio Prova in diretta streaming!',
+          url: window.location.href
+        }).catch(err => console.log('Condivisione annullata'));
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link della radio copiato negli appunti!');
+      }
+    });
+
+    // Toggle Schermo Intero
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+      } else {
+        document.exitFullscreen().catch(err => console.log(err));
+      }
     });
 
     // Aggiornamento informazioni brano in onda
