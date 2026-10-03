@@ -49,6 +49,23 @@
       position: relative;
     }
 
+    /* Badge Visite in Alto a Destra */
+    .views-badge {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background-color: rgba(11, 19, 43, 0.7);
+      border: 1px solid #3a506b;
+      color: #4ea8de;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
     /* Badge LIVE */
     .live-badge {
       display: inline-flex;
@@ -367,16 +384,12 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    /* Footer Crediti e Contatore Visite */
+    /* Footer Crediti */
     .footer-credits {
       margin-top: 15px;
       font-size: 0.72rem;
       color: #718096;
       letter-spacing: 0.8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
     }
 
     .footer-credits a {
@@ -390,19 +403,16 @@
       color: #00b4d8;
       text-decoration: underline;
     }
-
-    /* Stile Solo Numero Visite */
-    .visit-count-text {
-      color: #4ea8de;
-      font-weight: 600;
-      font-size: 0.75rem;
-      letter-spacing: 1px;
-    }
   </style>
 </head>
 <body>
 
   <div class="main-card">
+    <!-- Badge Visite in alto a destra -->
+    <div class="views-badge" title="Visite totali">
+      <span>👁</span> <span id="visit-count">...</span>
+    </div>
+
     <!-- Indicatore di Stato Live -->
     <div class="live-badge">
       <span class="live-dot"></span>
@@ -460,10 +470,9 @@
       </audio>
     </div>
 
-    <!-- Menzione FastCast4u e Contatore Solo Numero -->
+    <!-- Menzione FastCast4u -->
     <div class="footer-credits">
       <div>Powered by <a href="https://fastcast4u.com" target="_blank" rel="noopener">FastCast4u</a></div>
-      <div class="visit-count-text" id="visit-count"></div>
     </div>
   </div>
 
