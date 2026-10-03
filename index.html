@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Radio Prova - Radio Promoter Network</title>
-  
-  <!-- Favicon scheda browser -->
-  <link rel="icon" type="image/jpeg" href="webradioprovalogo.jpeg">
-  
   <style>
     * {
       box-sizing: border-box;
@@ -16,7 +12,7 @@
     }
 
     body {
-      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+      background-color: #0b132b;
       color: #ffffff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
@@ -36,30 +32,6 @@
       width: 100%;
       max-width: 440px;
       position: relative;
-      transition: box-shadow 0.5s ease;
-    }
-
-    /* Effetto alone fluorescente quando la radio è in play */
-    .main-card.playing {
-      box-shadow: 0 0 35px rgba(78, 168, 222, 0.3), 0 15px 35px rgba(0, 0, 0, 0.7);
-    }
-
-    /* Tasto Schermo Intero in alto a destra */
-    .fullscreen-btn {
-      position: absolute;
-      top: 18px;
-      right: 20px;
-      background: none;
-      border: none;
-      color: #a0aec0;
-      font-size: 16px;
-      cursor: pointer;
-      transition: color 0.2s ease, transform 0.2s ease;
-    }
-
-    .fullscreen-btn:hover {
-      color: #4ea8de;
-      transform: scale(1.15);
     }
 
     /* Badge LIVE */
@@ -137,13 +109,41 @@
       border: 1px solid #3a506b;
     }
 
+    .now-playing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
     .now-playing-label {
       font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 2px;
       color: #4ea8de;
       font-weight: 700;
-      margin-bottom: 6px;
+    }
+
+    /* Pulsante Copia Brano */
+    .copy-btn {
+      background: rgba(58, 80, 107, 0.3);
+      border: 1px solid #3a506b;
+      color: #a0aec0;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .copy-btn:hover {
+      background-color: #3a506b;
+      color: #ffffff;
+      transform: scale(1.05);
     }
 
     .track-title {
@@ -275,26 +275,29 @@
       transform: scale(1.2);
     }
 
-    /* Pulsante Condividi */
+    /* Pulsante Condividi Radio */
     .share-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(58, 80, 107, 0.4);
+      justify-content: center;
+      gap: 8px;
+      background-color: rgba(58, 80, 107, 0.4);
       border: 1px solid #3a506b;
       color: #a0aec0;
-      padding: 6px 16px;
+      padding: 8px 18px;
       border-radius: 20px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
       cursor: pointer;
       margin-top: 15px;
       transition: all 0.2s ease;
     }
 
     .share-btn:hover {
-      background: #3a506b;
+      background-color: #3a506b;
       color: #ffffff;
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     /* Footer Crediti FastCast4u */
@@ -321,9 +324,6 @@
 <body>
 
   <div class="main-card">
-    <!-- Pulsante Fullscreen -->
-    <button class="fullscreen-btn" id="fullscreen-btn" title="Schermo intero">⛶</button>
-
     <!-- Indicatore di Stato Live -->
     <div class="live-badge">
       <span class="live-dot"></span>
@@ -335,7 +335,10 @@
       
       <!-- Box Titolo e Artista -->
       <div class="now-playing">
-        <div class="now-playing-label">In onda ora</div>
+        <div class="now-playing-header">
+          <span class="now-playing-label">In onda ora</span>
+          <button id="copy-btn" class="copy-btn" title="Copia artista e titolo">📋 Copia</button>
+        </div>
         <div id="track-title" class="track-title">Caricamento brano...</div>
         <div id="track-artist" class="track-artist">Web Radio Prova</div>
         
@@ -360,15 +363,15 @@
         </div>
       </div>
 
+      <!-- Pulsante Condividi Radio -->
+      <button id="share-btn" class="share-btn">🔗 Condividi Radio</button>
+
       <!-- Elemento Audio Nascosto -->
       <audio id="radio-player">
         <source src="https://eu8.fastcast4u.com/proxy/webradioprova?mp=/stream" type="audio/mpeg">
         <source src="http://eu8.fastcast4u.com:4796/;" type="audio/mpeg">
       </audio>
     </div>
-
-    <!-- Tasto Condividi Radio -->
-    <button class="share-btn" id="share-btn">🔗 Condividi Radio</button>
 
     <!-- Menzione FastCast4u -->
     <div class="footer-credits">
@@ -382,10 +385,10 @@
     const volumeSlider = document.getElementById('volume-slider');
     const volMuteBtn = document.getElementById('vol-mute-btn');
     const volMaxBtn = document.getElementById('vol-max-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const copyBtn = document.getElementById('copy-btn');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
-    const shareBtn = document.getElementById('share-btn');
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
 
     let previousVolume = 0.8;
 
@@ -439,7 +442,26 @@
       volMuteBtn.textContent = '🔈';
     });
 
-    // Funzione Condividi
+    // Funzione Copia Titolo e Artista
+    copyBtn.addEventListener('click', () => {
+      const artist = document.getElementById('track-artist').textContent;
+      const title = document.getElementById('track-title').textContent;
+      const fullSongText = `${artist} - ${title}`;
+
+      navigator.clipboard.writeText(fullSongText).then(() => {
+        copyBtn.textContent = '✓ Copiato!';
+        copyBtn.style.color = '#4ea8de';
+        copyBtn.style.borderColor = '#4ea8de';
+        
+        setTimeout(() => {
+          copyBtn.textContent = '📋 Copia';
+          copyBtn.style.color = '#a0aec0';
+          copyBtn.style.borderColor = '#3a506b';
+        }, 2000);
+      }).catch(err => console.log('Errore durante la copia:', err));
+    });
+
+    // Funzione Condivisione Rapida
     shareBtn.addEventListener('click', () => {
       if (navigator.share) {
         navigator.share({
@@ -448,21 +470,12 @@
           url: window.location.href
         }).catch(err => console.log('Condivisione annullata'));
       } else {
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link della radio copiato negli appunti!');
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('Link della radio copiato negli appunti!');
+        });
       }
     });
 
-    // Toggle Schermo Intero
-    fullscreenBtn.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => console.log(err));
-      } else {
-        document.exitFullscreen().catch(err => console.log(err));
-      }
-    });
-
-    // Aggiornamento informazioni brano in onda
     async function updateNowPlaying() {
       try {
         const response = await fetch('https://eu8.fastcast4u.com/rpc/webradioprova/streaminfo.get');
@@ -470,33 +483,16 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const songInfo = data.data[0].song;
-          let title = "Web Radio Prova";
-          let artist = "Web Radio";
           
           if (songInfo) {
             if (songInfo.includes(' - ')) {
               const parts = songInfo.split(' - ');
-              artist = parts[0].trim();
-              title = parts.slice(1).join(' - ').trim();
+              document.getElementById('track-artist').textContent = parts[0].trim();
+              document.getElementById('track-title').textContent = parts.slice(1).join(' - ').trim();
             } else {
-              title = songInfo;
-              artist = 'Web Radio Prova';
+              document.getElementById('track-title').textContent = songInfo;
+              document.getElementById('track-artist').textContent = 'Web Radio Prova';
             }
-          }
-
-          document.getElementById('track-title').textContent = title;
-          document.getElementById('track-artist').textContent = artist;
-
-          // Aggiorna notifica sistema / schermata di blocco
-          if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-              title: title,
-              artist: artist,
-              album: 'Web Radio Prova - Live Stream',
-              artwork: [
-                { src: 'webradioprovalogo.jpeg', sizes: '512x512', type: 'image/jpeg' }
-              ]
-            });
           }
         }
       } catch (error) {
