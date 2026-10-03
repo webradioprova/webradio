@@ -376,7 +376,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
     }
 
     .footer-credits a {
@@ -391,13 +391,12 @@
       text-decoration: underline;
     }
 
-    .visitor-badge {
-      opacity: 0.85;
-      transition: opacity 0.2s ease;
-    }
-
-    .visitor-badge:hover {
-      opacity: 1;
+    /* Stile Solo Numero Visite */
+    .visit-count-text {
+      color: #4ea8de;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
     }
   </style>
 </head>
@@ -461,12 +460,10 @@
       </audio>
     </div>
 
-    <!-- Menzione FastCast4u e Contatore Visite Privacy-First -->
+    <!-- Menzione FastCast4u e Contatore Testuale Solo Numero -->
     <div class="footer-credits">
       <div>Powered by <a href="https://fastcast4u.com" target="_blank" rel="noopener">FastCast4u</a></div>
-      <div class="visitor-badge">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fwebradioprova.github.io%2Fwebradio&count_bg=%231C2541&title_bg=%233A506B&icon=&icon_color=%23E7E7E7&title=visite&edge_flat=false" alt="Contatore visite" />
-      </div>
+      <div class="visit-count-text" id="visit-count">Visite: ...</div>
     </div>
   </div>
 
@@ -634,8 +631,29 @@
       }
     }
 
+    // Contatore Visite con API (Senza Immagini)
+    async function initVisitorCounter() {
+      const namespace = 'webradioprova_github_io';
+      const key = 'webradio_visits';
+      const visitCountEl = document.getElementById('visit-count');
+
+      try {
+        const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+        const data = await response.json();
+        if (data && data.value !== undefined) {
+          visitCountEl.textContent = `Visite: ${data.value}`;
+        } else {
+          visitCountEl.style.display = 'none';
+        }
+      } catch (err) {
+        // Se c'è un blocco di rete, nasconde discretamente il testo invece di mostrare errori
+        visitCountEl.style.display = 'none';
+      }
+    }
+
     updateNowPlaying();
     setInterval(updateNowPlaying, 10000);
+    initVisitorCounter();
   </script>
 
 </body>
