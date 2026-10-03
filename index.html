@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Radio Prova - Radio Promoter Network</title>
+  
+  <!-- Favicon scheda browser -->
+  <link rel="icon" type="image/jpeg" href="webradioprovalogo.jpeg">
+  
   <style>
     * {
       box-sizing: border-box;
@@ -12,7 +16,7 @@
     }
 
     body {
-      background-color: #0b132b;
+      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
       color: #ffffff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
@@ -32,6 +36,12 @@
       width: 100%;
       max-width: 440px;
       position: relative;
+      transition: box-shadow 0.5s ease;
+    }
+
+    /* Effetto alone fluorescente quando la radio è in play */
+    .main-card.playing {
+      box-shadow: 0 0 30px rgba(78, 168, 222, 0.25), 0 15px 35px rgba(0, 0, 0, 0.7);
     }
 
     /* Badge LIVE */
@@ -326,7 +336,6 @@
     const volumeSlider = document.getElementById('volume-slider');
     const volMuteBtn = document.getElementById('vol-mute-btn');
     const volMaxBtn = document.getElementById('vol-max-btn');
-    const container = document.getElementById('audio-container');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
 
@@ -382,6 +391,7 @@
       volMuteBtn.textContent = '🔈';
     });
 
+    // Aggiornamento informazioni brano in onda
     async function updateNowPlaying() {
       try {
         const response = await fetch('https://eu8.fastcast4u.com/rpc/webradioprova/streaminfo.get');
@@ -389,16 +399,33 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const songInfo = data.data[0].song;
+          let title = "Web Radio Prova";
+          let artist = "Web Radio";
           
           if (songInfo) {
             if (songInfo.includes(' - ')) {
               const parts = songInfo.split(' - ');
-              document.getElementById('track-artist').textContent = parts[0].trim();
-              document.getElementById('track-title').textContent = parts.slice(1).join(' - ').trim();
+              artist = parts[0].trim();
+              title = parts.slice(1).join(' - ').trim();
             } else {
-              document.getElementById('track-title').textContent = songInfo;
-              document.getElementById('track-artist').textContent = 'Web Radio Prova';
+              title = songInfo;
+              artist = 'Web Radio Prova';
             }
+          }
+
+          document.getElementById('track-title').textContent = title;
+          document.getElementById('track-artist').textContent = artist;
+
+          // Aggiorna notifica sistema / schermata di blocco
+          if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: title,
+              artist: artist,
+              album: 'Web Radio Prova - Live Stream',
+              artwork: [
+                { src: 'webradioprovalogo.jpeg', sizes: '512x512', type: 'image/jpeg' }
+              ]
+            });
           }
         }
       } catch (error) {
