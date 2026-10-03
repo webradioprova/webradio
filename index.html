@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Radio Prova - Radio Promoter Network & Circuito</title>
+  <title>Web Radio Prova - Radio Promoter Network</title>
   <style>
     * {
       box-sizing: border-box;
@@ -30,10 +30,10 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       text-align: center;
       width: 100%;
-      max-width: 450px;
+      max-width: 480px;
     }
 
-    /* Contenitore relativo per consentire il posizionamento assoluto del logo */
+    /* Contenitore relativo per posizionare il logo sopra l'iframe */
     .player-wrapper {
       position: relative;
       width: 100%;
@@ -51,20 +51,20 @@
       border-radius: 12px;
     }
 
-    /* Maschera di sovrapposizione logo */
+    /* Maschera con il tuo logo */
     .logo-overlay {
       position: absolute;
-      top: 50px; /* Regola l'altezza se necessario */
+      top: 55px; /* Regola la coordinata se serve alzare o abbassare il logo */
       left: 50%;
       transform: translateX(-50%);
-      width: 140px;
-      height: 140px;
+      width: 150px; /* Dimensione della maschera per coprire 4U */
+      height: 150px;
       border-radius: 50%;
-      background-image: url('logo.jpg'); /* Verifica il nome esatto dell'immagine caricata */
+      background-image: url('webradioprovalogo.jpeg'); /* File aggiornato in .jpeg */
       background-size: cover;
       background-position: center;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
-      pointer-events: none; /* Lascia passare i click all'iframe sottostante */
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+      pointer-events: none; /* Lascia passare i clic ai tasti dell'iframe */
       z-index: 10;
     }
   </style>
