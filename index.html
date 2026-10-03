@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Radio Prova - Radio Promoter Network</title>
+  
+  <!-- Favicon scheda browser -->
+  <link rel="icon" type="image/jpeg" href="webradioprovalogo.jpeg">
+
   <style>
     * {
       box-sizing: border-box;
@@ -85,6 +89,12 @@
       gap: 15px;
     }
 
+    /* Logo Wrapper */
+    .logo-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
     .logo-img {
       width: 140px;
       height: 140px;
@@ -93,6 +103,8 @@
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
       border: 3px solid #3a506b;
       transition: transform 0.3s ease, border-color 0.3s ease;
+      position: relative;
+      z-index: 2;
     }
 
     .playing .logo-img {
@@ -162,6 +174,45 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* Pulsanti Ricerca Spotify / YouTube */
+    .search-links {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .search-btn {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #a0aec0;
+      background-color: rgba(58, 80, 107, 0.2);
+      border: 1px solid #3a506b;
+      padding: 4px 10px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .search-btn:hover {
+      background-color: #3a506b;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .search-btn.spotify:hover {
+      border-color: #1db954;
+      color: #1db954;
+    }
+
+    .search-btn.youtube:hover {
+      border-color: #ff0000;
+      color: #ff0000;
     }
 
     /* Equalizzatore Grafico Animato */
@@ -331,7 +382,9 @@
     </div>
 
     <div class="audio-container" id="audio-container">
-      <img src="webradioprovalogo.jpeg" alt="Web Radio Prova" class="logo-img">
+      <div class="logo-wrapper">
+        <img src="webradioprovalogo.jpeg" alt="Web Radio Prova" class="logo-img">
+      </div>
       
       <!-- Box Titolo e Artista -->
       <div class="now-playing">
@@ -342,6 +395,12 @@
         <div id="track-title" class="track-title">Caricamento brano...</div>
         <div id="track-artist" class="track-artist">Web Radio Prova</div>
         
+        <!-- Collegamenti veloci per cercare la canzone -->
+        <div class="search-links">
+          <a id="spotify-link" href="#" target="_blank" rel="noopener" class="search-btn spotify">🎵 Spotify</a>
+          <a id="youtube-link" href="#" target="_blank" rel="noopener" class="search-btn youtube">▶ YouTube</a>
+        </div>
+
         <!-- Equalizzatore a barre -->
         <div class="equalizer">
           <div class="bar"></div>
@@ -387,6 +446,8 @@
     const volMaxBtn = document.getElementById('vol-max-btn');
     const shareBtn = document.getElementById('share-btn');
     const copyBtn = document.getElementById('copy-btn');
+    const spotifyLink = document.getElementById('spotify-link');
+    const youtubeLink = document.getElementById('youtube-link');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
 
@@ -451,12 +512,10 @@
       navigator.clipboard.writeText(fullSongText).then(() => {
         copyBtn.textContent = '✓ Copiato!';
         copyBtn.style.color = '#4ea8de';
-        copyBtn.style.borderColor = '#4ea8de';
         
         setTimeout(() => {
           copyBtn.textContent = '📋 Copia';
           copyBtn.style.color = '#a0aec0';
-          copyBtn.style.borderColor = '#3a506b';
         }, 2000);
       }).catch(err => console.log('Errore durante la copia:', err));
     });
@@ -485,6 +544,8 @@
           const songInfo = data.data[0].song;
           
           if (songInfo) {
+            let fullSearchQuery = songInfo;
+
             if (songInfo.includes(' - ')) {
               const parts = songInfo.split(' - ');
               document.getElementById('track-artist').textContent = parts[0].trim();
@@ -493,6 +554,10 @@
               document.getElementById('track-title').textContent = songInfo;
               document.getElementById('track-artist').textContent = 'Web Radio Prova';
             }
+
+            // Aggiorna link di ricerca
+            spotifyLink.href = `https://open.spotify.com/search/${encodeURIComponent(fullSearchQuery)}`;
+            youtubeLink.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(fullSearchQuery)}`;
           }
         }
       } catch (error) {
