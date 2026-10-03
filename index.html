@@ -4,28 +4,109 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Radio Scuola</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #0f172a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      font-family: sans-serif;
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
     }
-    iframe {
-      width: 100%;
-      max-width: 450px;
-      height: 550px;
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
+    .animated-ring { animation: pulse-ring 3s infinite ease-in-out; }
+    .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.12); }
   </style>
 </head>
-<body>
-  <iframe src="https://fastcast4u.com/player/webradioprova/" allow="autoplay"></iframe>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="fixed inset-0 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 -z-10"></div>
+
+  <div class="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center relative overflow-hidden">
+    
+    <div class="w-full flex justify-between items-center mb-6 text-xs font-semibold tracking-wider text-slate-400">
+      <span class="flex items-center gap-2">
+        <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+        <span id="status-text">IN PAUSA</span>
+      </span>
+    </div>
+
+    <div class="relative mb-8 group">
+      <div id="ring" class="absolute -inset-3 bg-indigo-500/20 rounded-full blur-sm opacity-0 transition-opacity duration-500"></div>
+      <div class="w-40 h-40 rounded-full bg-slate-900 border-2 border-slate-700/50 flex items-center justify-center shadow-inner relative z-10">
+        <i class="fa-solid fa-radio text-6xl text-indigo-400"></i>
+      </div>
+    </div>
+
+    <h1 class="text-2xl font-extrabold tracking-tight text-white mb-1">Web Radio Scuola</h1>
+    <p class="text-slate-400 text-sm mb-6">La voce dell'Istituto</p>
+
+    <div class="w-full flex items-center justify-center mb-8">
+      <button id="play-btn" class="w-20 h-20 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-all duration-300 transform hover:scale-105 active:scale-95">
+        <i id="play-icon" class="fa-solid fa-play text-2xl ml-1"></i>
+      </button>
+    </div>
+
+    <div class="w-full space-y-2">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
+        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+      </div>
+    </div>
+
+    <div id="error-msg" class="hidden mt-4 p-3 bg-red-950/50 border border-red-500/30 text-red-200 text-xs rounded-xl">
+      Impossibile collegarsi allo streaming. Verifica il link dello stream.
+    </div>
+  </div>
+
+  <audio id="audio-player" preload="none"></audio>
+
+  <script>
+    const CONFIG = {
+      STREAM_URL: "http://eu8.fastcast4u.com:4796/;stream.mp3"
+    };
+
+    const audio = document.getElementById('audio-player');
+    const playBtn = document.getElementById('play-btn');
+    const playIcon = document.getElementById('play-icon');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const ring = document.getElementById('ring');
+    const volumeSlider = document.getElementById('volume');
+    const errorMsg = document.getElementById('error-msg');
+
+    audio.src = CONFIG.STREAM_URL;
+    audio.volume = volumeSlider.value;
+
+    let isPlaying = false;
+
+    playBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        audio.load();
+        audio.play().then(() => {
+          isPlaying = true;
+          playIcon.className = 'fa-solid fa-pause text-2xl';
+          statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+          statusText.innerText = 'IN ONDA';
+          ring.classList.remove('opacity-0');
+          ring.classList.add('animated-ring');
+          errorMsg.classList.add('hidden');
+        }).catch(err => {
+          errorMsg.classList.remove('hidden');
+        });
+      } else {
+        audio.pause();
+        audio.src = ''; 
+        isPlaying = false;
+        playIcon.className = 'fa-solid fa-play text-2xl ml-1';
+        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+        statusText.innerText = 'IN PAUSA';
+        ring.classList.add('opacity-0');
+        ring.classList.remove('animated-ring');
+      }
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      audio.volume = e.target.value;
+    });
+  </script>
 </body>
 </html>
