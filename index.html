@@ -31,18 +31,63 @@
       text-align: center;
       width: 100%;
       max-width: 440px;
+      position: relative;
+    }
+
+    /* Badge LIVE */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: rgba(11, 19, 43, 0.8);
+      border: 1px solid #3a506b;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #a0aec0;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #718096;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Stato ON AIR / LIVE quando audio attivo */
+    .playing .live-badge {
+      border-color: #e63946;
+      color: #ffffff;
+      background-color: rgba(230, 57, 70, 0.15);
+    }
+
+    .playing .live-dot {
+      background-color: #e63946;
+      box-shadow: 0 0 10px #e63946;
+      animation: pulse-red 1.5s infinite;
+    }
+
+    @keyframes pulse-red {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
     }
 
     .audio-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 15px;
     }
 
     .logo-img {
-      width: 150px;
-      height: 150px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       object-fit: cover;
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
@@ -109,7 +154,6 @@
       transition: height 0.2s ease;
     }
 
-    /* Animazione barre quando la radio suona */
     .playing .equalizer .bar {
       animation: bounce 1.2s infinite ease-in-out alternate;
     }
@@ -196,6 +240,12 @@
 <body>
 
   <div class="main-card">
+    <!-- Indicatore di Stato Live -->
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      <span id="live-text">OFFLINE</span>
+    </div>
+
     <div class="audio-container" id="audio-container">
       <img src="webradioprovalogo.jpeg" alt="Web Radio Prova" class="logo-img">
       
@@ -239,19 +289,23 @@
     const playBtn = document.getElementById('play-btn');
     const volumeSlider = document.getElementById('volume-slider');
     const container = document.getElementById('audio-container');
+    const mainCard = document.querySelector('.main-card');
+    const liveText = document.getElementById('live-text');
 
     playBtn.addEventListener('click', () => {
       if (player.paused) {
         player.play().then(() => {
           playBtn.textContent = '❚❚';
-          container.classList.add('playing');
+          mainCard.classList.add('playing');
+          liveText.textContent = 'IN DIRETTA';
         }).catch(err => {
           console.log("Errore di riproduzione:", err);
         });
       } else {
         player.pause();
         playBtn.textContent = '▶';
-        container.classList.remove('playing');
+        mainCard.classList.remove('playing');
+        liveText.textContent = 'IN PAUSA';
       }
     });
 
