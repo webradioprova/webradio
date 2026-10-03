@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Radio Prova - Radio Promoter Network</title>
+
+  <!-- Tag Open Graph per Anteprima Social (WhatsApp, Facebook, Telegram) -->
+  <meta property="og:title" content="Web Radio Prova - Ascolta la diretta">
+  <meta property="og:description" content="Ascolta la musica e i programmi in streaming su Web Radio Prova.">
+  <meta property="og:image" content="webradioprovalogo.jpeg">
+  <meta property="og:type" content="music.radio_station">
   
   <!-- Favicon scheda browser -->
   <link rel="icon" type="image/jpeg" href="webradioprovalogo.jpeg">
@@ -183,6 +189,11 @@
       justify-content: center;
       gap: 10px;
       margin-top: 12px;
+      transition: opacity 0.3s ease;
+    }
+
+    .search-links.hidden {
+      display: none;
     }
 
     .search-btn {
@@ -396,7 +407,7 @@
         <div id="track-artist" class="track-artist">Web Radio Prova</div>
         
         <!-- Collegamenti veloci per cercare la canzone -->
-        <div class="search-links">
+        <div id="search-links" class="search-links">
           <a id="spotify-link" href="#" target="_blank" rel="noopener" class="search-btn spotify">🎵 Spotify</a>
           <a id="youtube-link" href="#" target="_blank" rel="noopener" class="search-btn youtube">▶ YouTube</a>
         </div>
@@ -448,6 +459,7 @@
     const copyBtn = document.getElementById('copy-btn');
     const spotifyLink = document.getElementById('spotify-link');
     const youtubeLink = document.getElementById('youtube-link');
+    const searchLinks = document.getElementById('search-links');
     const coverImg = document.getElementById('cover-img');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
@@ -578,13 +590,22 @@
             document.getElementById('track-artist').textContent = artistStr;
             document.getElementById('track-title').textContent = titleStr;
 
-            // Aggiorna link di ricerca
-            spotifyLink.href = `https://open.spotify.com/search/${encodeURIComponent(songInfo)}`;
-            youtubeLink.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(songInfo)}`;
+            // Aggiorna titolo della scheda browser
+            document.title = `${artistStr} - ${titleStr} | Web Radio Prova`;
 
-            // Recupera e imposta copertina
-            const coverUrl = await fetchCoverArt(songInfo);
-            coverImg.src = coverUrl;
+            // Mostra o nascondi i link di ricerca (Spotify/YouTube) se si tratta di uno speakeraggio/jingle
+            if (artistStr.toLowerCase().includes('web radio') || titleStr.toLowerCase().includes('presentazione')) {
+              searchLinks.classList.add('hidden');
+              coverImg.src = DEFAULT_LOGO;
+            } else {
+              searchLinks.classList.remove('hidden');
+              spotifyLink.href = `https://open.spotify.com/search/${encodeURIComponent(songInfo)}`;
+              youtubeLink.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(songInfo)}`;
+              
+              // Recupera copertina
+              const coverUrl = await fetchCoverArt(songInfo);
+              coverImg.src = coverUrl;
+            }
           }
         }
       } catch (error) {
