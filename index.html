@@ -383,7 +383,7 @@
 
     <div class="audio-container" id="audio-container">
       <div class="logo-wrapper">
-        <img id="cover-img" src="webradioprovalogo.jpeg" alt="Web Radio Prova" class="logo-img">
+        <img id="cover-img" src="webradioprovalogo.jpeg" alt="Web Radio Prova" class="logo-img" onerror="this.src='webradioprovalogo.jpeg'">
       </div>
       
       <!-- Box Titolo e Artista -->
@@ -533,7 +533,11 @@
         }).catch(err => console.log('Condivisione annullata'));
       } else {
         navigator.clipboard.writeText(window.location.href).then(() => {
-          alert('Link della radio copiato negli appunti!');
+          const originalText = shareBtn.textContent;
+          shareBtn.textContent = '✓ Link Copiato!';
+          setTimeout(() => {
+            shareBtn.textContent = originalText;
+          }, 2000);
         });
       }
     });
