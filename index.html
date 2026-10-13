@@ -179,13 +179,30 @@
       color: #ffffff;
     }
 
+    /* Contenitore con scorrimento orizzontale */
+    .track-title-container {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+    }
+
     .track-title {
       font-size: 1.1rem;
       font-weight: 600;
       color: #ffffff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      display: inline-block;
+    }
+
+    /* Attiva l'animazione di scorrimento se il testo è lungo */
+    .track-title.marquee {
+      animation: scroll-text 10s linear infinite;
+      padding-left: 100%;
+    }
+
+    @keyframes scroll-text {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
     }
 
     .track-artist {
@@ -414,7 +431,12 @@
           <span class="now-playing-label">In onda ora</span>
           <button id="copy-btn" class="copy-btn" title="Copia artista e titolo">📋 Copia</button>
         </div>
-        <div id="track-title" class="track-title">Caricamento brano...</div>
+        
+        <!-- Contenitore con scroll orizzontale -->
+        <div class="track-title-container">
+          <div id="track-title" class="track-title">Caricamento brano...</div>
+        </div>
+        
         <div id="track-artist" class="track-artist">Web Radio Prova</div>
         
         <div id="search-links" class="search-links">
@@ -465,6 +487,7 @@
     const coverImg = document.getElementById('cover-img');
     const mainCard = document.querySelector('.main-card');
     const liveText = document.getElementById('live-text');
+    const trackTitleEl = document.getElementById('track-title');
 
     const DEFAULT_LOGO = 'webradioprovalogo.jpeg';
     let previousVolume = 0.8;
@@ -553,7 +576,7 @@
 
     copyBtn.addEventListener('click', () => {
       const artist = document.getElementById('track-artist').textContent;
-      const title = document.getElementById('track-title').textContent;
+      const title = trackTitleEl.textContent;
       const fullSongText = `${artist} - ${title}`;
 
       navigator.clipboard.writeText(fullSongText).then(() => {
@@ -600,39 +623,64 @@
 
     async function updateNowPlaying() {
       try {
-        const response = await fetch('https://eu8.fastcast4u.com/rpc/webradioprova/streaminfo.get');
+        const response = await fetch('https://eu8.fastcast4u.com/proxy/webradioprova?type=json');
         const data = await response.json();
 
-        if (data && data.type === 'result' && data.data && data.data[0]) {
-          const songInfo = data.data[0].song;
-          
-          if (songInfo && songInfo !== currentTrack) {
-            currentTrack = songInfo;
-            let artistStr = 'Web Radio Prova';
-            let titleStr = songInfo;
+        let songInfo = '';
+        if (data && data.title) {
+          songInfo = data.title;
+        } else if (data && data.icestats && data.icestats.source) {
+          const source = Array.isArray(data.icestats.source) ? data.icestats.source[0] : data.icestats.source;
+          if (source && source.title) {
+            songInfo = source.title;
+          }
+        }
 
-            if (songInfo.includes(' - ')) {
-              const parts = songInfo.split(' - ');
-              artistStr = parts[0].trim();
-              titleStr = parts.slice(1).join(' - ').trim();
+        if (!songInfo) {
+          try {
+            const rpcResponse = await fetch('https://eu8.fastcast4u.com/rpc/webradioprova/streaminfo.get');
+            const rpcData = await rpcResponse.json();
+            if (rpcData && rpcData.type === 'result' && rpcData.data && rpcData.data[0]) {
+              songInfo = rpcData.data[0].song;
             }
+          } catch (e) {
+            // Ignora errore fallback rpc
+          }
+        }
 
-            document.getElementById('track-artist').textContent = artistStr;
-            document.getElementById('track-title').textContent = titleStr;
+        if (songInfo && songInfo !== currentTrack) {
+          currentTrack = songInfo;
+          let artistStr = 'Web Radio Prova';
+          let titleStr = songInfo;
 
-            document.title = `${artistStr} - ${titleStr} | Web Radio Prova`;
+          if (songInfo.includes(' - ')) {
+            const parts = songInfo.split(' - ');
+            artistStr = parts[0].trim();
+            titleStr = parts.slice(1).join(' - ').trim();
+          }
 
-            if (artistStr.toLowerCase().includes('web radio') || titleStr.toLowerCase().includes('presentazione')) {
-              searchLinks.classList.add('hidden');
-              coverImg.src = DEFAULT_LOGO;
-            } else {
-              searchLinks.classList.remove('hidden');
-              spotifyLink.href = `https://open.spotify.com/search/${encodeURIComponent(songInfo)}`;
-              youtubeLink.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(songInfo)}`;
-              
-              const coverUrl = await fetchCoverArt(songInfo);
-              coverImg.src = coverUrl;
-            }
+          document.getElementById('track-artist').textContent = artistStr;
+          trackTitleEl.textContent = titleStr;
+
+          // Gestione automatica dello scorrimento se il titolo è più largo del box
+          trackTitleEl.classList.remove('marquee');
+          void trackTitleEl.offsetWidth; // forza il reflow
+          if (trackTitleEl.scrollWidth > trackTitleEl.parentElement.clientWidth) {
+            trackTitleEl.classList.add('marquee');
+          }
+
+          document.title = `${artistStr} - ${titleStr} | Web Radio Prova`;
+
+          if (artistStr.toLowerCase().includes('web radio') || titleStr.toLowerCase().includes('presentazione') || titleStr.toLowerCase().includes('station id')) {
+            searchLinks.classList.add('hidden');
+            coverImg.src = DEFAULT_LOGO;
+          } else {
+            searchLinks.classList.remove('hidden');
+            spotifyLink.href = `https://open.spotify.com/search/${encodeURIComponent(songInfo)}`;
+            youtubeLink.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(songInfo)}`;
+            
+            const coverUrl = await fetchCoverArt(songInfo);
+            coverImg.src = coverUrl;
           }
         }
       } catch (error) {
@@ -645,7 +693,7 @@
       
       try {
         const response = await fetch('https://countapi.mileshilliard.com/api/v1/hit/webradioprova_global_counter');
-        if (response.ok) {
+        if, (response.ok) {
           const data = await response.json();
           if (data && data.value !== undefined) {
             visitCountEl.textContent = data.value;
