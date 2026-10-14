@@ -515,16 +515,37 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          let songString = info.song || '';
-          
-          // Se la stringa contiene un trattino (es. "Rosario Attanasio - Station ID..."), 
-          // la scompone e la inverte forzatamente mettendola nel formato desiderato.
-          if (songString.includes(' - ')) {
-            const parts = songString.split(' - ');
-            const artist = parts[0].trim(); // Es. Rosario Attanasio
-            const titleAndTags = parts.slice(1).join(' - ').trim(); // Es. Station ID 01...
-            songString = `${titleAndTags} - ${artist}`;
+          // Forza la lettura della stringa grezza completa del brano inviata dal server
+          let rawSong = info.song || '';
+          let songString = '';
+
+          // Controllo per la scritta di default del server
+          if (rawSong.toLowerCase().includes('freeshoutcast autodj')) {
+            let defaultDisplay = "Web Radio Prova in diretta";
+            if (defaultDisplay !== currentTrack) {
+              currentTrack = defaultDisplay;
+              trackTitleEl.textContent = defaultDisplay;
+              document.title = `${defaultDisplay} | Web Radio Prova`;
+              coverImg.src = DEFAULT_LOGO;
+            }
+            return;
           }
+
+          // Se il server manda campi separati anziché la stringa 'song', ricomponiamoli noi nell'ordine giusto
+          if (!rawSong && info.title) {
+            let t = info.title || '';
+            let a = info.artist || '';
+            let al = info.album || '';
+            
+            // Ricostruiamo la stringa completa: Titolo - Album - Artista
+            let parts = [];
+            if (t) parts.push(t);
+            if (al) parts.push(al);
+            if (a) parts.push(a);
+            rawSong = parts.join(' - ');
+          }
+
+          songString = rawSong;
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
@@ -554,22 +575,3 @@
           const data = await response.json();
           if (data && data.value !== undefined) {
             visitCountEl.textContent = data.value;
-            return;
-          }
-        }
-      } catch (e) {
-        console.log('Errore contatore:', e);
-      }
-
-      if (visitCountEl.textContent === '...') {
-        visitCountEl.textContent = '--';
-      }
-    }
-
-    updateNowPlaying();
-    setInterval(updateNowPlaying, 10000);
-    initVisitorCounter();
-  </script>
-
-</body>
-</html>
