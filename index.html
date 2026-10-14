@@ -515,13 +515,13 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
+          let songString = info.song || '';
           let artist = info.artist || '';
-          let title = info.title || '';
           let album = info.album || '';
-          let rawSong = info.song || '';
+          let title = info.title || '';
 
-          // Filtro rigoroso per bloccare la scritta di default del server
-          if (rawSong.toLowerCase().includes('freeshoutcast autodj') || artist.toLowerCase().includes('freeshoutcast autodj') || title.toLowerCase().includes('freeshoutcast autodj')) {
+          // Se il server manda la scritta di default di FreeSHOUTCAST, mostriamo la dicitura pulita fissa
+          if (songString.toLowerCase().includes('freeshoutcast autodj') || (artist.toLowerCase().includes('freeshoutcast autodj') && !title)) {
             let defaultDisplay = "Web Radio Prova in diretta";
             if (defaultDisplay !== currentTrack) {
               currentTrack = defaultDisplay;
@@ -532,38 +532,39 @@
             return;
           }
 
-          if (!title && rawSong) {
-            if (rawSong.includes(' - ')) {
-              const parts = rawSong.split(' - ');
-              if (!artist) artist = parts[0].trim();
-              title = parts.slice(1).join(' - ').trim();
-            } else {
-              title = rawSong;
-            }
+          // Se abbiamo i campi separati o la stringa grezza, estraiamo ordinatamente Titolo, Album e Artista
+          if (!title && songString.includes(' - ')) {
+            const parts = songString.split(' - ');
+            if (!artist) artist = parts[0].trim();
+            title = parts.slice(1).join(' - ').trim();
+          } else if (!title) {
+            title = songString;
           }
 
+          // Rimuove l'artista in eccesso se duplicato all'inizio del titolo
           if (artist && title.toLowerCase().startsWith(artist.toLowerCase())) {
             title = title.substring(artist.length).replace(/^[\s\-]+/, '').trim();
           }
 
+          // Composizione della stringa: Titolo - Album - Artista
           let partsList = [];
           if (title) partsList.push(title);
           if (album) partsList.push(album);
           if (artist) partsList.push(artist);
 
-          let fullDetails = partsList.join(' - ');
-          if (!fullDetails) fullDetails = rawSong || 'Web Radio Prova in diretta';
+          let finalDetails = partsList.join(' - ');
+          if (!finalDetails) finalDetails = songString || 'Web Radio Prova in diretta';
 
-          if (fullDetails && fullDetails !== currentTrack) {
-            currentTrack = fullDetails;
-            trackTitleEl.textContent = fullDetails;
-            document.title = `${fullDetails} | Web Radio Prova`;
+          if (finalDetails && finalDetails !== currentTrack) {
+            currentTrack = finalDetails;
+            trackTitleEl.textContent = finalDetails;
+            document.title = `${finalDetails} | Web Radio Prova`;
 
-            const lowerSong = fullDetails.toLowerCase();
+            const lowerSong = finalDetails.toLowerCase();
             if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
-              const coverUrl = await fetchCoverArt(title || fullDetails);
+              const coverUrl = await fetchCoverArt(title || finalDetails);
               coverImg.src = coverUrl;
             }
           }
@@ -586,7 +587,7 @@
           }
         }
       } catch (e) {
-        console.log('Error contatore:', e);
+        console.log('Errore contatore:', e);
       }
 
       if (visitCountEl.textContent === '...') {
