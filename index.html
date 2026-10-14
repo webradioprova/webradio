@@ -515,30 +515,27 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          let artist = info.artist || '';
-          let title = info.song || info.title || '';
-
-          // Se il server ha incollato l'artista all'inizio del titolo, lo rimuoviamo dal titolo
-          if (artist && title.toLowerCase().startsWith(artist.toLowerCase())) {
-            title = title.substring(artist.length).replace(/^[\s\-]+/, '').trim();
+          let songString = info.song || '';
+          
+          // Se la stringa contiene un trattino (es. "Rosario Attanasio - Station ID..."), 
+          // la scompone e la inverte forzatamente mettendola nel formato desiderato.
+          if (songString.includes(' - ')) {
+            const parts = songString.split(' - ');
+            const artist = parts[0].trim(); // Es. Rosario Attanasio
+            const titleAndTags = parts.slice(1).join(' - ').trim(); // Es. Station ID 01...
+            songString = `${titleAndTags} - ${artist}`;
           }
 
-          // Forza l'ordine: PRIMA il Titolo (con i tag) e alla FINE l'Artista
-          let fullDetails = title;
-          if (artist) {
-            fullDetails = title ? `${title} - ${artist}` : artist;
-          }
+          if (songString && songString !== currentTrack) {
+            currentTrack = songString;
+            trackTitleEl.textContent = songString;
+            document.title = `${songString} | Web Radio Prova`;
 
-          if (fullDetails && fullDetails !== currentTrack) {
-            currentTrack = fullDetails;
-            trackTitleEl.textContent = fullDetails;
-            document.title = `${fullDetails} | Web Radio Prova`;
-
-            const lowerSong = fullDetails.toLowerCase();
+            const lowerSong = songString.toLowerCase();
             if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
-              const coverUrl = await fetchCoverArt(fullDetails);
+              const coverUrl = await fetchCoverArt(songString);
               coverImg.src = coverUrl;
             }
           }
