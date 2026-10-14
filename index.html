@@ -518,9 +518,20 @@
           let artist = info.artist || '';
           let title = info.title || '';
           let album = info.album || '';
-
-          // Se il server unisce tutto nel campo song, estraiamo i pezzi
           let rawSong = info.song || '';
+
+          // Filtra la stringa di default del server AutoDJ
+          if (rawSong.includes('FreeSHOUTCAST AutoDJ') || artist.includes('FreeSHOUTCAST AutoDJ') || title.includes('FreeSHOUTCAST AutoDJ')) {
+            let defaultDisplay = "Web Radio Prova - In Diretta";
+            if (defaultDisplay !== currentTrack) {
+              currentTrack = defaultDisplay;
+              trackTitleEl.textContent = defaultDisplay;
+              document.title = `${defaultDisplay} | Web Radio Prova`;
+              coverImg.src = DEFAULT_LOGO;
+            }
+            return;
+          }
+
           if (!title && rawSong.includes(' - ')) {
             const parts = rawSong.split(' - ');
             if (!artist) artist = parts[0].trim();
@@ -529,12 +540,10 @@
             title = rawSong;
           }
 
-          // Rimuove l'artista in eccesso dal titolo se presente
           if (artist && title.toLowerCase().startsWith(artist.toLowerCase())) {
             title = title.substring(artist.length).replace(/^[\s\-]+/, '').trim();
           }
 
-          // Costruzione ordinata: [Titolo/Tag] - [Album] - [Artista]
           let partsList = [];
           if (title) partsList.push(title);
           if (album) partsList.push(album);
