@@ -518,10 +518,10 @@
           const artist = info.artist || '';
           const title = info.song || info.title || '';
 
-          // Inverte l'ordine: mostra prima il Titolo e poi l'Artista
+          // Costruisce la stringa mettendo PRIMA il Titolo/Tag e alla FINE l'Artista
           let fullDetails = title;
-          if (artist && !title.toLowerCase().includes(artist.toLowerCase())) {
-            fullDetails = `${title} - ${artist}`;
+          if (artist) {
+            fullDetails = title ? `${title} - ${artist}` : artist;
           }
 
           if (fullDetails && fullDetails !== currentTrack) {
