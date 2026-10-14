@@ -516,19 +516,14 @@
           const info = data.data[0];
           
           let songString = info.song || '';
-          let album = info.album || '';
           
+          // Se la stringa contiene un trattino (es. "Rosario Attanasio - Station ID..."), 
+          // la scompone e la inverte forzatamente mettendola nel formato desiderato.
           if (songString.includes(' - ')) {
             const parts = songString.split(' - ');
-            const artist = parts[0].trim();
-            const titleAndTags = parts.slice(1).join(' - ').trim();
-            
-            // Inserisce l'album nel mezzo se disponibile, altrimenti mantiene Titolo - Artista
-            if (album && album !== '0' && album !== '') {
-              songString = `${titleAndTags} - ${album} - ${artist}`;
-            } else {
-              songString = `${titleAndTags} - ${artist}`;
-            }
+            const artist = parts[0].trim(); // Es. Rosario Attanasio
+            const titleAndTags = parts.slice(1).join(' - ').trim(); // Es. Station ID 01...
+            songString = `${titleAndTags} - ${artist}`;
           }
 
           if (songString && songString !== currentTrack) {
