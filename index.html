@@ -515,12 +515,13 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          let songString = info.song || '';
+          let rawSong = info.song || '';
           let artist = info.artist || '';
           let album = info.album || '';
           let title = info.title || '';
 
-          if (songString.toLowerCase().includes('freeshoutcast autodj') || (artist.toLowerCase().includes('freeshoutcast autodj') && !title)) {
+          // Controllo per la scritta di default del server
+          if (rawSong.toLowerCase().includes('freeshoutcast autodj') || (artist.toLowerCase().includes('freeshoutcast autodj') && !title)) {
             let defaultDisplay = "Web Radio Prova in diretta";
             if (defaultDisplay !== currentTrack) {
               currentTrack = defaultDisplay;
@@ -531,25 +532,29 @@
             return;
           }
 
-          if (!title && songString.includes(' - ')) {
-            const parts = songString.split(' - ');
+          // Se il server manda la stringa concatenata e mancano i campi singoli
+          if (!title && rawSong.includes(' - ')) {
+            const parts = rawSong.split(' - ');
             if (!artist) artist = parts[0].trim();
             title = parts.slice(1).join(' - ').trim();
           } else if (!title) {
-            title = songString;
+            title = rawSong;
           }
 
           if (artist && title.toLowerCase().startsWith(artist.toLowerCase())) {
             title = title.substring(artist.length).replace(/^[\s\-]+/, '').trim();
           }
 
+          // Forziamo l'inserimento dell'album se esiste (anche nei tag di Vivaldi)
           let partsList = [];
           if (title) partsList.push(title);
-          if (album && album !== '0' && album !== '') partsList.push(album);
+          if (album && album !== '0' && album !== '' && album.toLowerCase() !== 'unknown album') {
+            partsList.push(album);
+          }
           if (artist) partsList.push(artist);
 
           let finalDetails = partsList.join(' - ');
-          if (!finalDetails) finalDetails = songString || 'Web Radio Prova in diretta';
+          if (!finalDetails) finalDetails = rawSong || 'Web Radio Prova in diretta';
 
           if (finalDetails && finalDetails !== currentTrack) {
             currentTrack = finalDetails;
