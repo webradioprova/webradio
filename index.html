@@ -515,10 +515,15 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          const artist = info.artist || '';
-          const title = info.song || info.title || '';
+          let artist = info.artist || '';
+          let title = info.song || info.title || '';
 
-          // Costruisce la stringa mettendo PRIMA il Titolo/Tag e alla FINE l'Artista
+          // Se il server ha incollato l'artista all'inizio del titolo, lo rimuoviamo dal titolo
+          if (artist && title.toLowerCase().startsWith(artist.toLowerCase())) {
+            title = title.substring(artist.length).replace(/^[\s\-]+/, '').trim();
+          }
+
+          // Forza l'ordine: PRIMA il Titolo (con i tag) e alla FINE l'Artista
           let fullDetails = title;
           if (artist) {
             fullDetails = title ? `${title} - ${artist}` : artist;
