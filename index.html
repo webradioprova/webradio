@@ -515,12 +515,43 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          let songString = info.song || '';
+          let rawSong = info.song || '';
+          let title = info.title || '';
+          let artist = info.artist || '';
+          let album = info.album || '';
 
-          // Se il server trasmette sia titolo che artista separatamente, li uniamo
-          if (!songString && info.title) {
-            songString = info.title + (info.artist ? ' - ' + info.artist : '');
+          // Controllo per la scritta di default del server
+          if (rawSong.toLowerCase().includes('freeshoutcast autodj')) {
+            let defaultDisplay = "Web Radio Prova in diretta";
+            if (defaultDisplay !== currentTrack) {
+              currentTrack = defaultDisplay;
+              trackTitleEl.textContent = defaultDisplay;
+              document.title = `${defaultDisplay} | Web Radio Prova`;
+              coverImg.src = DEFAULT_LOGO;
+            }
+            return;
           }
+
+          let songString = '';
+
+          // Se il server inverte mettendo l'orchestra/artista all'inizio (es. "Orchestra - Titolo"), riordiniamo
+          if (rawSong.includes(' - ')) {
+            let parts = rawSong.split(' - ');
+            // Se la prima parte è l'orchestra/artista e la seconda è il titolo di Vivaldi, invertiamo
+            if (parts.length >= 2 && (parts[0].toLowerCase().includes('orchestr') || parts[0].toLowerCase().includes('chamber'))) {
+              let orch = parts[0].trim();
+              let rest = parts.slice(1).join(' - ').trim();
+              songString = `${rest} - ${orch}`;
+            } else {
+              songString = rawSong;
+            }
+          } else if (title) {
+            songString = title + (artist ? ' - ' + artist : '');
+          } else {
+            songString = rawSong;
+          }
+
+          if (!songString) songString = "Web Radio Prova";
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
