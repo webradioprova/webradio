@@ -496,7 +496,7 @@
 
     async function fetchCoverArt(query) {
       try {
-        const response = await fetch('https://itunes.apple.com/search?term=' + encodeURIComponent(query) + '&media=music&limit=1');
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
         const data = await response.json();
         if (data.results && data.results.length > 0) {
           return data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
@@ -516,29 +516,23 @@
           const info = data.data[0];
           
           let songString = info.song || '';
-
-          if (songString.toLowerCase().includes('freeshoutcast autodj')) {
-            let defaultDisplay = "Web Radio Prova in diretta";
-            if (defaultDisplay !== currentTrack) {
-              currentTrack = defaultDisplay;
-              trackTitleEl.textContent = defaultDisplay;
-              document.title = defaultDisplay + " | Web Radio Prova";
-              coverImg.src = DEFAULT_LOGO;
-            }
-            return;
-          }
-
-          if (!songString && info.title) {
-            songString = info.title + (info.artist ? " - " + info.artist : "");
+          
+          // Se la stringa contiene un trattino (es. "Rosario Attanasio - Station ID..."), 
+          // la scompone e la inverte forzatamente mettendola nel formato desiderato.
+          if (songString.includes(' - ')) {
+            const parts = songString.split(' - ');
+            const artist = parts[0].trim(); // Es. Rosario Attanasio
+            const titleAndTags = parts.slice(1).join(' - ').trim(); // Es. Station ID 01...
+            songString = `${titleAndTags} - ${artist}`;
           }
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
             trackTitleEl.textContent = songString;
-            document.title = songString + " | Web Radio Prova";
+            document.title = `${songString} | Web Radio Prova`;
 
             const lowerSong = songString.toLowerCase();
-            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle') || lowerSong.includes('info radio')) {
+            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
               const coverUrl = await fetchCoverArt(songString);
@@ -553,6 +547,7 @@
 
     async function initVisitorCounter() {
       const visitCountEl = document.getElementById('visit-count');
+      
       try {
         const response = await fetch('https://countapi.mileshilliard.com/api/v1/hit/webradioprova_global_counter');
         if (response.ok) {
@@ -565,6 +560,7 @@
       } catch (e) {
         console.log('Errore contatore:', e);
       }
+
       if (visitCountEl.textContent === '...') {
         visitCountEl.textContent = '--';
       }
