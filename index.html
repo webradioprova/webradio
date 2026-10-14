@@ -520,7 +520,8 @@
           let album = info.album || '';
           let rawSong = info.song || '';
 
-          if (rawSong.includes('FreeSHOUTCAST AutoDJ') || (artist.includes('FreeSHOUTCAST AutoDJ') && !title)) {
+          // Filtro rigoroso per bloccare la scritta di default del server
+          if (rawSong.toLowerCase().includes('freeshoutcast autodj') || artist.toLowerCase().includes('freeshoutcast autodj') || title.toLowerCase().includes('freeshoutcast autodj')) {
             let defaultDisplay = "Web Radio Prova in diretta";
             if (defaultDisplay !== currentTrack) {
               currentTrack = defaultDisplay;
@@ -531,12 +532,14 @@
             return;
           }
 
-          if (!title && rawSong.includes(' - ')) {
-            const parts = rawSong.split(' - ');
-            if (!artist) artist = parts[0].trim();
-            title = parts.slice(1).join(' - ').trim();
-          } else if (!title) {
-            title = rawSong;
+          if (!title && rawSong) {
+            if (rawSong.includes(' - ')) {
+              const parts = rawSong.split(' - ');
+              if (!artist) artist = parts[0].trim();
+              title = parts.slice(1).join(' - ').trim();
+            } else {
+              title = rawSong;
+            }
           }
 
           if (artist && title.toLowerCase().startsWith(artist.toLowerCase())) {
@@ -549,7 +552,7 @@
           if (artist) partsList.push(artist);
 
           let fullDetails = partsList.join(' - ');
-          if (!fullDetails) fullDetails = rawSong || 'Web Radio Prova';
+          if (!fullDetails) fullDetails = rawSong || 'Web Radio Prova in diretta';
 
           if (fullDetails && fullDetails !== currentTrack) {
             currentTrack = fullDetails;
@@ -583,7 +586,7 @@
           }
         }
       } catch (e) {
-        console.log('Errore contatore:', e);
+        console.log('Error contatore:', e);
       }
 
       if (visitCountEl.textContent === '...') {
