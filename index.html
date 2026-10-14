@@ -515,14 +515,13 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          // Estrae l'artista e il titolo puliti trasmessi dal server (senza oggetti strani)
           const artist = info.artist || '';
           const title = info.song || info.title || '';
 
-          // Unisce Artista e Titolo in modo pulito ed elegante
+          // Inverte l'ordine: mostra prima il Titolo e poi l'Artista
           let fullDetails = title;
           if (artist && !title.toLowerCase().includes(artist.toLowerCase())) {
-            fullDetails = `${artist} - ${title}`;
+            fullDetails = `${title} - ${artist}`;
           }
 
           if (fullDetails && fullDetails !== currentTrack) {
