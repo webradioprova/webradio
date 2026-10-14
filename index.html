@@ -514,45 +514,39 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
-          
-          let title = info.title || '';
-          let artist = info.artist || '';
-          let rawSong = info.song || '';
-
-          // Controllo per la scritta di default del server
-          if (rawSong.toLowerCase().includes('freeshoutcast autodj')) {
-            let defaultDisplay = "Web Radio Prova in diretta";
-            if (defaultDisplay !== currentTrack) {
-              currentTrack = defaultDisplay;
-              trackTitleEl.textContent = defaultDisplay;
-              document.title = `${defaultDisplay} | Web Radio Prova`;
-              coverImg.src = DEFAULT_LOGO;
-            }
-            return;
-          }
-
+          let rawSong = (info.song || '').toLowerCase();
           let songString = '';
 
-          // Se il server inverte (es. "Orchestra - Titolo"), rimettiamo nell'ordine: [Titolo] - [Autore] - [Orchestra]
-          if (rawSong.includes(' - ')) {
-            let parts = rawSong.split(' - ').map(p => p.trim());
-            // Se la prima parte è l'orchestra e la seconda è il brano di Vivaldi, invertiamo
-            if (parts.length >= 2 && (parts[0].toLowerCase().includes('orchestra') || parts[0].toLowerCase().includes('chamber') || parts[0].toLowerCase().includes('l\'orchestra'))) {
-              let orchestra = parts[0];
-              let brano = parts.slice(1).join(' - ');
-              songString = `${brano} - Antonio Vivaldi - ${orchestra}`;
-            } else {
-              songString = rawSong;
-            }
-          } else if (title) {
-            // Se abbiamo i campi separati da CentovaCast ma l'artista è l'orchestra
-            let orchestra = artist.includes('Orchestra') || artist.includes('Chamber') ? artist : "The Modena Chamber Orchestra";
-            songString = `${title} - Antonio Vivaldi - ${orchestra}`;
+          // Mappatura forzata basata sul nome del brano trasmesso dal server
+          if (rawSong.includes('primavera') && rawSong.includes('allegro') && !rawSong.includes('pastorale')) {
+            songString = "La Primavera: I. Allegro - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('primavera') && rawSong.includes('largo')) {
+            songString = "La Primavera: II. Largo e pianissimo sempre - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('primavera') && rawSong.includes('pastorale')) {
+            songString = "La Primavera: III. Allegro pastorale - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('estate') && rawSong.includes('non molto')) {
+            songString = "L'Estate: I. Allegro non molto - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('estate') && rawSong.includes('adagio')) {
+            songString = "L'Estate: II. Adagio e piano - Presto e forte - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('estate') && rawSong.includes('presto')) {
+            songString = "L'Estate: III. Presto - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('autunno') && rawSong.includes('i. allegro')) {
+            songString = "L'Autunno: I. Allegro - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('autunno') && rawSong.includes('adagio molto')) {
+            songString = "L'Autunno: II. Adagio molto - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('autunno') && rawSong.includes('iii. allegro')) {
+            songString = "L'Autunno: III. Allegro - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('inverno') && rawSong.includes('non molto')) {
+            songString = "L'Inverno: I. Allegro non molto - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('inverno') && rawSong.includes('largo')) {
+            songString = "L'Inverno: II. Largo - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('inverno') && rawSong.includes('iii. allegro')) {
+            songString = "L'Inverno: III. Allegro - Le quattro stagioni, Op. 8 - Antonio Vivaldi - The Modena Chamber Orchestra";
+          } else if (rawSong.includes('info radio')) {
+            songString = "Info Radio 01: Voce realizzata con supporto IA - Web Radio Prova";
           } else {
-            songString = rawSong;
+            songString = info.song || "Web Radio Prova in diretta";
           }
-
-          if (!songString) songString = "Web Radio Prova";
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
