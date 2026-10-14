@@ -515,29 +515,14 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          // Estrazione di tutti i campi disponibili dai metadati del server
-          const songInfo = info.song || '';
+          // Estrae l'artista e il titolo puliti trasmessi dal server (senza oggetti strani)
           const artist = info.artist || '';
-          const title = info.title || '';
-          const album = info.album || '';
-          const year = info.year || '';
-          const comment = info.comment || '';
-          const track = info.track || '';
+          const title = info.song || info.title || '';
 
-          // Costruzione stringa unificata con tutti i tag disponibili
-          let fullDetails = songInfo;
-          if (artist && title) {
+          // Unisce Artista e Titolo in modo pulito ed elegante
+          let fullDetails = title;
+          if (artist && !title.toLowerCase().includes(artist.toLowerCase())) {
             fullDetails = `${artist} - ${title}`;
-          }
-
-          let extraInfo = [];
-          if (album) extraInfo.push(`Album: ${album}`);
-          if (track) extraInfo.push(`Traccia: ${track}`);
-          if (year) extraInfo.push(`Anno: ${year}`);
-          if (comment) extraInfo.push(`Note: ${comment}`);
-
-          if (extraInfo.length > 0) {
-            fullDetails += ` | ${extraInfo.join(' - ')}`;
           }
 
           if (fullDetails && fullDetails !== currentTrack) {
@@ -549,8 +534,7 @@
             if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
-              const searchQuery = artist && title ? `${artist} ${title}` : songInfo;
-              const coverUrl = await fetchCoverArt(searchQuery);
+              const coverUrl = await fetchCoverArt(fullDetails);
               coverImg.src = coverUrl;
             }
           }
