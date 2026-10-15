@@ -517,7 +517,6 @@
           
           let songRaw = info.song || info.title || '';
           
-          // Se contiene FreeSHOUTCAST AutoDJ o presentazioni di default, mostriamo una stringa fissa e pulita
           if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
             let defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
             if (defaultDisplay !== currentTrack) {
@@ -530,11 +529,10 @@
           }
 
           let album = info.album || "Le quattro stagioni, Op. 8";
-          let artist = info.artist || "The Modena Chamber Orchestra";
           let title = songRaw;
           let autore = "Antonio Vivaldi";
+          let orchestra = "The Modena Chamber Orchestra";
 
-          // Pulizia del titolo da eventuali ripetizioni
           let cleanTitle = title
             .replace(/Antonio Vivaldi\s*-\s*/gi, '')
             .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
@@ -542,8 +540,8 @@
 
           if (!cleanTitle) cleanTitle = title;
 
-          // Sequenza esatta pulita: [Album] - [Autore] - [Movimento/Titolo] - [Artista]
-          let songString = `${album} - ${autore} - ${cleanTitle} - ${artist}`;
+          // Sequenza definitiva pulita con l'orchestra fissa una sola volta alla fine
+          let songString = `${album} - ${autore} - ${cleanTitle} - ${orchestra}`;
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
