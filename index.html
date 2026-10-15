@@ -514,10 +514,28 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
-          let songString = info.song || '';
+          let rawSong = info.song || '';
+          let songString = '';
 
-          if (!songString) {
-            songString = "Web Radio Prova - In diretta streaming";
+          // Riordinamento automatico della stringa trasmessa da CentovaCast
+          // Esempio ricevuto: "L'Orchestra da Camera di Modena - Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - I Allegro"
+          if (rawSong.includes(' - ')) {
+            let parts = rawSong.split(' - ').map(p => p.trim());
+            
+            // Se la prima parte è l'orchestra, la spostiamo in fondo e riordiniamo i blocchi
+            if (parts.length >= 4) {
+              let orchestra = parts[0]; // es. L'Orchestra da Camera di Modena
+              let opera = parts[1];     // es. Le quattro stagioni, Op. 8
+              let autore = parts[2];    // es. Antonio Vivaldi
+              let movimento = parts.slice(3).join(' - '); // es. La Primavera - I Allegro
+
+              // Sequenza desiderata: Opera - Autore - Movimento - Orchestra
+              songString = `${opera} - ${autore} - ${movimento} - ${orchestra}`;
+            } else {
+              songString = rawSong;
+            }
+          } else {
+            songString = rawSong || "Web Radio Prova - In diretta";
           }
 
           if (songString && songString !== currentTrack) {
@@ -554,7 +572,7 @@
           }
         }
       } catch (e) {
-        console.log('Errore contatore:', e);
+        console.log('Error contatore:', e);
       }
       if (visitCountEl.textContent === '...') {
         visitCountEl.textContent = '--';
