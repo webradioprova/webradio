@@ -514,29 +514,28 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
-          let rawSong = info.song || '';
-          let songString = '';
+          
+          // Estraiamo i campi nativi forniti da CentovaCast
+          let album = info.album || '';
+          let artist = info.artist || '';
+          let title = info.title || info.song || '';
+          let autore = "Antonio Vivaldi";
 
-          // Riordinamento automatico della stringa trasmessa da CentovaCast
-          // Esempio ricevuto: "L'Orchestra da Camera di Modena - Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - I Allegro"
-          if (rawSong.includes(' - ')) {
-            let parts = rawSong.split(' - ').map(p => p.trim());
-            
-            // Se la prima parte è l'orchestra, la spostiamo in fondo e riordiniamo i blocchi
-            if (parts.length >= 4) {
-              let orchestra = parts[0]; // es. L'Orchestra da Camera di Modena
-              let opera = parts[1];     // es. Le quattro stagioni, Op. 8
-              let autore = parts[2];    // es. Antonio Vivaldi
-              let movimento = parts.slice(3).join(' - '); // es. La Primavera - I Allegro
-
-              // Sequenza desiderata: Opera - Autore - Movimento - Orchestra
-              songString = `${opera} - ${autore} - ${movimento} - ${orchestra}`;
-            } else {
-              songString = rawSong;
-            }
-          } else {
-            songString = rawSong || "Web Radio Prova - In diretta";
+          // Se l'album è vuoto, proviamo a estrarlo o mettiamo un valore pulito
+          if (!album || album.toLowerCase() === 'classici') {
+            album = "Le quattro stagioni, Op. 8";
           }
+
+          // Pulizia del titolo per evitare doppioni
+          let cleanTitle = title
+            .replace(/Antonio Vivaldi\s*-\s*/gi, '')
+            .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+            .trim();
+
+          if (!cleanTitle) cleanTitle = title;
+
+          // Assembliamo la sequenza esatta: [Album] - [Autore] - [Titolo/Movimento] - [Artista/Orchestra]
+          let songString = `${album} - ${autore} - ${cleanTitle} - ${artist}`;
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
@@ -572,7 +571,7 @@
           }
         }
       } catch (e) {
-        console.log('Error contatore:', e);
+        console.log('Errore contatore:', e);
       }
       if (visitCountEl.textContent === '...') {
         visitCountEl.textContent = '--';
