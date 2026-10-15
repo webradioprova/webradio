@@ -515,18 +515,26 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           
-          // Estraiamo i campi nativi forniti da CentovaCast
-          let album = info.album || '';
-          let artist = info.artist || '';
-          let title = info.title || info.song || '';
-          let autore = "Antonio Vivaldi";
-
-          // Se l'album è vuoto, proviamo a estrarlo o mettiamo un valore pulito
-          if (!album || album.toLowerCase() === 'classici') {
-            album = "Le quattro stagioni, Op. 8";
+          let songRaw = info.song || info.title || '';
+          
+          // Se contiene FreeSHOUTCAST AutoDJ o presentazioni di default, mostriamo una stringa fissa e pulita
+          if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
+            let defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
+            if (defaultDisplay !== currentTrack) {
+              currentTrack = defaultDisplay;
+              trackTitleEl.textContent = defaultDisplay;
+              document.title = `${defaultDisplay} | Web Radio Prova`;
+              coverImg.src = DEFAULT_LOGO;
+            }
+            return;
           }
 
-          // Pulizia del titolo per evitare doppioni
+          let album = info.album || "Le quattro stagioni, Op. 8";
+          let artist = info.artist || "The Modena Chamber Orchestra";
+          let title = songRaw;
+          let autore = "Antonio Vivaldi";
+
+          // Pulizia del titolo da eventuali ripetizioni
           let cleanTitle = title
             .replace(/Antonio Vivaldi\s*-\s*/gi, '')
             .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
@@ -534,7 +542,7 @@
 
           if (!cleanTitle) cleanTitle = title;
 
-          // Assembliamo la sequenza esatta: [Album] - [Autore] - [Titolo/Movimento] - [Artista/Orchestra]
+          // Sequenza esatta pulita: [Album] - [Autore] - [Movimento/Titolo] - [Artista]
           let songString = `${album} - ${autore} - ${cleanTitle} - ${artist}`;
 
           if (songString && songString !== currentTrack) {
@@ -543,7 +551,7 @@
             document.title = `${songString} | Web Radio Prova`;
 
             const lowerSong = songString.toLowerCase();
-            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle') || lowerSong.includes('info radio')) {
+            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
               const coverUrl = await fetchCoverArt(songString);
