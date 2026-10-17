@@ -529,12 +529,11 @@
 
           let songString = '';
 
-          // Controllo protettivo: se è il file Info Radio, isola i suoi tag evitando Vivaldi
+          // Se è il file Info Radio, mostra direttamente solo il titolo pulito senza prefissi
           if (songRaw.toLowerCase().includes('info radio') || artistRaw.toLowerCase().includes('rosario attanasio')) {
-            let parts = [albumRaw || "Web Radio Prova", artistRaw || "a cura di Rosario Attanasio", songRaw].filter(p => p && p.length > 0);
-            songString = parts.join(' - ');
+            songString = songRaw;
           } else {
-            // Formattazione dedicata e pulita per i brani musicali di Vivaldi
+            // Formattazione pulita per i brani musicali di Vivaldi
             let album = (albumRaw || "Le quattro stagioni, Op. 8").toString();
             let title = songRaw;
             let autore = "Antonio Vivaldi";
