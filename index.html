@@ -494,19 +494,6 @@
       }
     });
 
-    async function fetchCoverArt(query) {
-      try {
-        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
-        const data = await response.json();
-        if (data.results && data.results.length > 0) {
-          return data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
-        }
-      } catch (err) {
-        console.log('Impossibile recuperare la copertina:', err);
-      }
-      return DEFAULT_LOGO;
-    }
-
     function updateMarqueeText(text) {
       trackTitleEl.textContent = text;
       trackTitleEl.style.animation = 'none';
@@ -526,8 +513,6 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           let songRaw = (info.song || info.title || '').toString();
-          let artistRaw = (info.artist || '').toString();
-          let albumRaw = (info.album || '').toString();
 
           if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
             const defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
@@ -540,51 +525,36 @@
             return;
           }
 
-          let songString = '';
+          let album = (info.album || "Le quattro stagioni, Op. 8").toString();
+          let title = songRaw;
+          let autore = "Antonio Vivaldi";
+          let orchestra = "The Modena Chamber Orchestra";
 
-          // Se è il file info o jingle, mostra i metadati reali della cartella
-          if (songRaw.toLowerCase().includes('info radio') || artistRaw.toLowerCase().includes('rosario attanasio') || albumRaw.toLowerCase().includes('web radio prova')) {
-            let parts = [albumRaw, artistRaw, songRaw].filter(p => p && p.length > 0);
-            songString = parts.join(' - ');
-          } else {
-            // Altrimenti applica la formattazione esatta per i brani di Vivaldi
-            let album = (albumRaw || "Le quattro stagioni, Op. 8").toString();
-            let title = songRaw;
-            let autore = artistRaw || "Antonio Vivaldi";
-            let orchestra = "The Modena Chamber Orchestra";
+          let cleanTitle = title
+            .replace(/Antonio Vivaldi\s*-\s*/gi, '')
+            .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+            .replace(/^[\-\s]+/, '')
+            .trim();
 
-            let cleanTitle = title
-              .replace(/Antonio Vivaldi\s*-\s*/gi, '')
-              .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
-              .replace(/^[\-\s]+/, '')
-              .trim();
+          if (!cleanTitle) cleanTitle = title.trim();
 
-            if (!cleanTitle) cleanTitle = title.trim();
+          const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          album = (album || '').replace(orchestraRegex, '').trim();
+          autore = (autore || '').replace(orchestraRegex, '').trim();
+          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
 
-            const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            album = (album || '').replace(orchestraRegex, '').trim();
-            autore = (autore || '').replace(orchestraRegex, '').trim();
-            cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
+          if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
 
-            if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
-
-            songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
-          }
-
+          let songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
           songString = songString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
             updateMarqueeText(songString);
             document.title = `${songString} | Web Radio Prova`;
-
-            const lowerSong = songString.toLowerCase();
-            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle') || lowerSong.includes('info radio')) {
-              coverImg.src = DEFAULT_LOGO;
-            } else {
-              const coverUrl = await fetchCoverArt(songString);
-              coverImg.src = coverUrl;
-            }
+            
+            // Fissa sempre e solo il logo della radio senza cercare su iTunes
+            coverImg.src = DEFAULT_LOGO;
           }
         } else {
           if (trackTitleEl.textContent === "Caricamento brano in corso...") {
