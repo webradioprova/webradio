@@ -516,148 +516,74 @@
     }
 
     async function updateNowPlaying() {
-      const TIMEOUT_MS = 3000;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        try { controller.abort(); } catch (e) {}
-        updateMarqueeText("Web Radio Prova - In diretta");
-      }, TIMEOUT_MS);
-
       try {
         const antiCache = Date.now() + '_' + Math.random();
-        const endpoints = [
-          `https://eu8.fastcast4u.com/proxy/webradioprova?sid=1&json=1&_=${antiCache}`,
-          `https://eu8.fastcast4u.com/proxy/webradioprova?json=1&_=${antiCache}`,
-          `https://eu8.fastcast4u.com/proxy/webradioprova?sid=1&_=${antiCache}`
-        ];
+        const url = `https://eu8.fastcast4u.com/rpc/webradioprova/streaminfo.get?_t=${antiCache}`;
 
-        let response, data;
-        for (const url of endpoints) {
-          try {
-            response = await fetch(url, {
-              cache: 'no-store',
-              headers: { 'Accept': 'application/json' },
-              signal: controller.signal
-            });
-            if (!response.ok) continue;
-            data = await response.json();
-            if (data) break;
-          } catch (err) {
-            data = null;
-            continue;
+        const response = await fetch(url, { cache: 'no-store', headers: { 'Accept': 'application/json' } });
+        const data = await response.json();
+
+        if (data && data.type === 'result' && data.data && data.data[0]) {
+          const info = data.data[0];
+          let songRaw = (info.song || info.title || '').toString();
+
+          if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
+            const defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
+            if (defaultDisplay !== currentTrack) {
+              currentTrack = defaultDisplay;
+              updateMarqueeText(defaultDisplay);
+              document.title = `${defaultDisplay} | Web Radio Prova`;
+              coverImg.src = DEFAULT_LOGO;
+            }
+            return;
           }
-        }
 
-        clearTimeout(timeoutId);
+          let album = (info.album || "Le quattro stagioni, Op. 8").toString();
+          let title = songRaw;
+          let autore = "Antonio Vivaldi";
+          let orchestra = "The Modena Chamber Orchestra";
 
-        if (!data) {
-          updateMarqueeText("Web Radio Prova - In diretta");
-          return;
-        }
+          let cleanTitle = title
+            .replace(/Antonio Vivaldi\s*-\s*/gi, '')
+            .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+            .replace(/^[\-\s]+/, '')
+            .trim();
 
-        function extractString(obj, keys) {
-          for (const k of keys) {
-            if (!obj) continue;
-            const v = obj[k];
-            if (typeof v === 'string' && v.trim()) return v.trim();
-            if (typeof v === 'number') return String(v);
+          if (!cleanTitle) cleanTitle = title.trim();
+
+          const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          album = (album || '').replace(orchestraRegex, '').trim();
+          autore = (autore || '').replace(orchestraRegex, '').trim();
+          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
+
+          if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
+
+          let songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
+          songString = songString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
+
+          if (songString && songString !== currentTrack) {
+            currentTrack = songString;
+            updateMarqueeText(songString);
+            document.title = `${songString} | Web Radio Prova`;
+
+            const lowerSong = songString.toLowerCase();
+            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
+              coverImg.src = DEFAULT_LOGO;
+            } else {
+              const coverUrl = await fetchCoverArt(songString);
+              coverImg.src = coverUrl;
+            }
           }
-          return null;
-        }
-
-        let songRaw =
-          extractString(data, ['song', 'title', 'songtitle', 'current_song', 'current_track', 'now_playing', 'nowplaying']) ||
-          (data.metadata && extractString(data.metadata, ['title', 'song'])) ||
-          (data.stream && extractString(data.stream, ['title', 'song'])) ||
-          null;
-
-        if (!songRaw && data.data) {
-          if (Array.isArray(data.data) && data.data.length > 0) {
-            songRaw = extractString(data.data[0], ['song', 'title', 'songtitle', 'now_playing']);
-          } else if (typeof data.data === 'object') {
-            songRaw = extractString(data.data, ['song', 'title', 'songtitle', 'now_playing']);
+        } else {
+          if (trackTitleEl.textContent === "Caricamento brano in corso...") {
+            updateMarqueeText("Web Radio Prova - In diretta");
           }
-        }
-
-        if (!songRaw) {
-          songRaw = extractString(data, ['songtitle', 'current_songtitle', 'current_track_title']) || '';
-        }
-
-        let artist = extractString(data, ['artist', 'artists', 'dj']) || '';
-        let title = '';
-        let album = extractString(data, ['album', 'albumtitle']) || '';
-
-        if (data.now_playing && typeof data.now_playing === 'object') {
-          artist = artist || extractString(data.now_playing, ['artist', 'artists']);
-          title = extractString(data.now_playing, ['title', 'song']) || title;
-        }
-
-        if (songRaw && !title) {
-          const parts = songRaw.split(' - ').map(s => s.trim()).filter(Boolean);
-          if (parts.length >= 2) {
-            artist = artist || parts[0];
-            title = parts.slice(1).join(' - ');
-          } else {
-            title = songRaw;
-          }
-        }
-
-        if (!title) title = songRaw || "Web Radio Prova - In diretta";
-
-        const orchestra = "The Modena Chamber Orchestra";
-        const defaultAlbum = "Le quattro stagioni, Op. 8";
-        album = album || defaultAlbum;
-        artist = artist || "Antonio Vivaldi";
-
-        let cleanTitle = title
-          .replace(/Antonio Vivaldi\s*-\s*/gi, '')
-          .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
-          .replace(/^[\-\s]+/, '')
-          .trim();
-
-        if (!cleanTitle) cleanTitle = title.trim();
-
-        const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        album = (album || '').replace(orchestraRegex, '').trim();
-        artist = (artist || '').replace(orchestraRegex, '').trim();
-        cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
-
-        if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
-
-        let songString = [album, artist, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
-        songString = songString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
-
-        const lowerSong = (songString || '').toLowerCase();
-        if (lowerSong.includes('autodj') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
-          const defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
-          if (defaultDisplay !== currentTrack) {
-            currentTrack = defaultDisplay;
-            updateMarqueeText(defaultDisplay);
-            document.title = `${defaultDisplay} | Web Radio Prova`;
-            coverImg.src = DEFAULT_LOGO;
-          }
-          return;
-        }
-
-        if (songString && songString !== currentTrack) {
-          currentTrack = songString;
-          updateMarqueeText(songString);
-          document.title = `${songString} | Web Radio Prova`;
-
-          if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
-            coverImg.src = DEFAULT_LOGO;
-          } else {
-            const coverUrl = await fetchCoverArt(songString);
-            coverImg.src = coverUrl;
-          }
-        } else if (!songString) {
-          updateMarqueeText("Web Radio Prova - In diretta");
         }
       } catch (error) {
-        console.log('Errore/timeout fetch proxy JSON:', error);
-        updateMarqueeText("Web Radio Prova - In diretta");
-      } finally {
-        clearTimeout(timeoutId);
+        console.log('Errore info brano RPC:', error);
+        if (trackTitleEl.textContent === "Caricamento brano in corso...") {
+          updateMarqueeText("Web Radio Prova - In diretta");
+        }
       }
     }
 
