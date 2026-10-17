@@ -513,6 +513,8 @@
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
           let songRaw = (info.song || info.title || '').toString();
+          let artistRaw = (info.artist || '').toString();
+          let albumRaw = (info.album || '').toString();
 
           if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
             const defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
@@ -525,35 +527,43 @@
             return;
           }
 
-          let album = (info.album || "Le quattro stagioni, Op. 8").toString();
-          let title = songRaw;
-          let autore = "Antonio Vivaldi";
-          let orchestra = "The Modena Chamber Orchestra";
+          let songString = '';
 
-          let cleanTitle = title
-            .replace(/Antonio Vivaldi\s*-\s*/gi, '')
-            .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
-            .replace(/^[\-\s]+/, '')
-            .trim();
+          // Controllo protettivo: se è il file Info Radio, isola i suoi tag evitando Vivaldi
+          if (songRaw.toLowerCase().includes('info radio') || artistRaw.toLowerCase().includes('rosario attanasio')) {
+            let parts = [albumRaw || "Web Radio Prova", artistRaw || "a cura di Rosario Attanasio", songRaw].filter(p => p && p.length > 0);
+            songString = parts.join(' - ');
+          } else {
+            // Formattazione dedicata e pulita per i brani musicali di Vivaldi
+            let album = (albumRaw || "Le quattro stagioni, Op. 8").toString();
+            let title = songRaw;
+            let autore = "Antonio Vivaldi";
+            let orchestra = "The Modena Chamber Orchestra";
 
-          if (!cleanTitle) cleanTitle = title.trim();
+            let cleanTitle = title
+              .replace(/Antonio Vivaldi\s*-\s*/gi, '')
+              .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+              .replace(/^[\-\s]+/, '')
+              .trim();
 
-          const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-          album = (album || '').replace(orchestraRegex, '').trim();
-          autore = (autore || '').replace(orchestraRegex, '').trim();
-          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
+            if (!cleanTitle) cleanTitle = title.trim();
 
-          if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
+            const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            album = (album || '').replace(orchestraRegex, '').trim();
+            autore = (autore || '').replace(orchestraRegex, '').trim();
+            cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
 
-          let songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
+            if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
+
+            songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
+          }
+
           songString = songString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
             updateMarqueeText(songString);
             document.title = `${songString} | Web Radio Prova`;
-            
-            // Fissa sempre e solo il logo della radio senza cercare su iTunes
             coverImg.src = DEFAULT_LOGO;
           }
         } else {
