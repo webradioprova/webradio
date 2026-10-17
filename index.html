@@ -540,7 +540,14 @@
 
           if (!cleanTitle) cleanTitle = title;
 
-          const songString = `${album} - ${autore} - ${cleanTitle} - ${orchestra}`;
+          const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          album = (album || '').replace(orchestraRegex, '').trim();
+          autore = (autore || '').replace(orchestraRegex, '').trim();
+          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').trim();
+
+          const songString = [album, autore, cleanTitle, orchestra]
+            .filter(Boolean)
+            .join(' - ');
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
