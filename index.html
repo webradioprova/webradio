@@ -527,50 +527,44 @@
           const info = data.data[0];
           let songRaw = (info.song || info.title || '').toString();
 
-          if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
-            const defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
-            if (defaultDisplay !== currentTrack) {
-              currentTrack = defaultDisplay;
-              updateMarqueeText(defaultDisplay);
-              document.title = `${defaultDisplay} | Web Radio Prova`;
-              coverImg.src = DEFAULT_LOGO;
-            }
-            return;
+          if (!songRaw) return;
+
+          // Se il file in onda è un jingle, una info o una presentazione, mostra il testo così com'è o pulito
+          let displayString = songRaw;
+
+          // Se contiene elementi di Vivaldi o parti classiche, mantiene la pulizia strutturata, altrimenti mostra il titolo del file audio reale
+          if (songRaw.toLowerCase().includes('vivaldi') || songRaw.toLowerCase().includes('stagioni')) {
+            let album = (info.album || "Le quattro stagioni, Op. 8").toString();
+            let autore = "Antonio Vivaldi";
+            let orchestra = "The Modena Chamber Orchestra";
+
+            let cleanTitle = songRaw
+              .replace(/Antonio Vivaldi\s*-\s*/gi, '')
+              .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+              .replace(/^[\-\s]+/, '')
+              .trim();
+
+            if (!cleanTitle) cleanTitle = songRaw.trim();
+
+            const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            album = (album || '').replace(orchestraRegex, '').trim();
+            autore = (autore || '').replace(orchestraRegex, '').trim();
+            cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
+
+            displayString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
+            displayString = displayString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
           }
 
-          let album = (info.album || "Le quattro stagioni, Op. 8").toString();
-          let title = songRaw;
-          let autore = "Antonio Vivaldi";
-          let orchestra = "The Modena Chamber Orchestra";
+          if (displayString && displayString !== currentTrack) {
+            currentTrack = displayString;
+            updateMarqueeText(displayString);
+            document.title = `${displayString} | Web Radio Prova`;
 
-          let cleanTitle = title
-            .replace(/Antonio Vivaldi\s*-\s*/gi, '')
-            .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
-            .replace(/^[\-\s]+/, '')
-            .trim();
-
-          if (!cleanTitle) cleanTitle = title.trim();
-
-          const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-          album = (album || '').replace(orchestraRegex, '').trim();
-          autore = (autore || '').replace(orchestraRegex, '').trim();
-          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
-
-          if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
-
-          let songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
-          songString = songString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
-
-          if (songString && songString !== currentTrack) {
-            currentTrack = songString;
-            updateMarqueeText(songString);
-            document.title = `${songString} | Web Radio Prova`;
-
-            const lowerSong = songString.toLowerCase();
-            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
+            const lowerSong = displayString.toLowerCase();
+            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle') || lowerSong.includes('info radio')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
-              const coverUrl = await fetchCoverArt(songString);
+              const coverUrl = await fetchCoverArt(displayString);
               coverImg.src = coverUrl;
             }
           }
