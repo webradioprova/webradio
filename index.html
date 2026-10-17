@@ -536,6 +536,7 @@
           let cleanTitle = title
             .replace(/Antonio Vivaldi\s*-\s*/gi, '')
             .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+            .replace(/^[\-\s]+/, '') // Rimuove trattini o spazi superflui all'inizio
             .trim();
 
           if (!cleanTitle) cleanTitle = title;
@@ -543,11 +544,14 @@
           const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
           album = (album || '').replace(orchestraRegex, '').trim();
           autore = (autore || '').replace(orchestraRegex, '').trim();
-          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').trim();
+          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
 
-          const songString = [album, autore, cleanTitle, orchestra]
+          let songString = [album, autore, cleanTitle, orchestra]
             .filter(Boolean)
             .join(' - ');
+
+          // Pulizia di sicurezza finale per rimuovere eventuali doppi trattini residui
+          songString = songString.replace(/\s*-\s*-\s*/g, ' - ');
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
