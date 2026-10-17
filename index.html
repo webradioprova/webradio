@@ -540,8 +540,7 @@
 
           if (!cleanTitle) cleanTitle = title;
 
-          // Sequenza definitiva pulita con l'orchestra fissa una sola volta alla fine
-          let songString = `${album} - ${autore} - ${cleanTitle} - ${orchestra}`;
+          const songString = `${album} - ${autore} - ${cleanTitle} - ${orchestra}`;
 
           if (songString && songString !== currentTrack) {
             currentTrack = songString;
