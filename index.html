@@ -525,59 +525,36 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
-          let songRaw = (info.song || info.title || '').toString();
 
-          if (!songRaw) return;
+          // Estrae direttamente i tag forniti da CentovaCast
+          let album = (info.album || '').toString().trim();
+          let artist = (info.artist || '').toString().trim();
+          let title = (info.song || info.title || '').toString().trim();
 
-          // Se il file in onda è un jingle, una info o una presentazione, mostra il testo così com'è o pulito
-          let displayString = songRaw;
+          // Costruisce la stringa unendo i tag disponibili
+          let parts = [album, artist, title].filter(p => p && p.length > 0);
+          let finalDisplay = parts.join(' - ').replace(/\s*-\s*-+\s*/g, ' - ').trim();
 
-          // Se contiene elementi di Vivaldi o parti classiche, mantiene la pulizia strutturata, altrimenti mostra il titolo del file audio reale
-          if (songRaw.toLowerCase().includes('vivaldi') || songRaw.toLowerCase().includes('stagioni')) {
-            let album = (info.album || "Le quattro stagioni, Op. 8").toString();
-            let autore = "Antonio Vivaldi";
-            let orchestra = "The Modena Chamber Orchestra";
-
-            let cleanTitle = songRaw
-              .replace(/Antonio Vivaldi\s*-\s*/gi, '')
-              .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
-              .replace(/^[\-\s]+/, '')
-              .trim();
-
-            if (!cleanTitle) cleanTitle = songRaw.trim();
-
-            const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            album = (album || '').replace(orchestraRegex, '').trim();
-            autore = (autore || '').replace(orchestraRegex, '').trim();
-            cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
-
-            displayString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
-            displayString = displayString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
+          if (!finalDisplay) {
+            finalDisplay = "Web Radio Prova - In diretta";
           }
 
-          if (displayString && displayString !== currentTrack) {
-            currentTrack = displayString;
-            updateMarqueeText(displayString);
-            document.title = `${displayString} | Web Radio Prova`;
+          if (finalDisplay !== currentTrack) {
+            currentTrack = finalDisplay;
+            updateMarqueeText(finalDisplay);
+            document.title = `${finalDisplay} | Web Radio Prova`;
 
-            const lowerSong = displayString.toLowerCase();
-            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle') || lowerSong.includes('info radio')) {
+            const lower = finalDisplay.toLowerCase();
+            if (lower.includes('info radio') || lower.includes('rosario attanasio') || lower.includes('jingle') || lower.includes('presentazione')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
-              const coverUrl = await fetchCoverArt(displayString);
+              const coverUrl = await fetchCoverArt(finalDisplay);
               coverImg.src = coverUrl;
             }
           }
-        } else {
-          if (trackTitleEl.textContent === "Caricamento brano in corso...") {
-            updateMarqueeText("Web Radio Prova - In diretta");
-          }
         }
       } catch (error) {
-        console.log('Errore info brano RPC:', error);
-        if (trackTitleEl.textContent === "Caricamento brano in corso...") {
-          updateMarqueeText("Web Radio Prova - In diretta");
-        }
+        console.log('Errore aggiornamento metadati RPC:', error);
       }
     }
 
