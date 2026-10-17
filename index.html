@@ -525,36 +525,65 @@
 
         if (data && data.type === 'result' && data.data && data.data[0]) {
           const info = data.data[0];
+          let songRaw = (info.song || info.title || '').toString();
 
-          // Estrae direttamente i tag forniti da CentovaCast
-          let album = (info.album || '').toString().trim();
-          let artist = (info.artist || '').toString().trim();
-          let title = (info.song || info.title || '').toString().trim();
-
-          // Costruisce la stringa unendo i tag disponibili
-          let parts = [album, artist, title].filter(p => p && p.length > 0);
-          let finalDisplay = parts.join(' - ').replace(/\s*-\s*-+\s*/g, ' - ').trim();
-
-          if (!finalDisplay) {
-            finalDisplay = "Web Radio Prova - In diretta";
+          if (songRaw.toLowerCase().includes('autodj') || songRaw.toLowerCase().includes('presentazione')) {
+            const defaultDisplay = "Le quattro stagioni, Op. 8 - Antonio Vivaldi - La Primavera - The Modena Chamber Orchestra";
+            if (defaultDisplay !== currentTrack) {
+              currentTrack = defaultDisplay;
+              updateMarqueeText(defaultDisplay);
+              document.title = `${defaultDisplay} | Web Radio Prova`;
+              coverImg.src = DEFAULT_LOGO;
+            }
+            return;
           }
 
-          if (finalDisplay !== currentTrack) {
-            currentTrack = finalDisplay;
-            updateMarqueeText(finalDisplay);
-            document.title = `${finalDisplay} | Web Radio Prova`;
+          let album = (info.album || "Le quattro stagioni, Op. 8").toString();
+          let title = songRaw;
+          let autore = "Antonio Vivaldi";
+          let orchestra = "The Modena Chamber Orchestra";
 
-            const lower = finalDisplay.toLowerCase();
-            if (lower.includes('info radio') || lower.includes('rosario attanasio') || lower.includes('jingle') || lower.includes('presentazione')) {
+          let cleanTitle = title
+            .replace(/Antonio Vivaldi\s*-\s*/gi, '')
+            .replace(/Le quattro stagioni[^\-]*-?\s*/gi, '')
+            .replace(/^[\-\s]+/, '')
+            .trim();
+
+          if (!cleanTitle) cleanTitle = title.trim();
+
+          const orchestraRegex = new RegExp(orchestra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          album = (album || '').replace(orchestraRegex, '').trim();
+          autore = (autore || '').replace(orchestraRegex, '').trim();
+          cleanTitle = (cleanTitle || '').replace(orchestraRegex, '').replace(/^[\-\s]+/, '').trim();
+
+          if (!cleanTitle) cleanTitle = (title || '').replace(orchestraRegex, '').trim();
+
+          let songString = [album, autore, cleanTitle, orchestra].filter(p => p && p.length > 0).join(' - ');
+          songString = songString.replace(/\s*-\s*-+\s*/g, ' - ').replace(/\s{2,}/g, ' ').trim();
+
+          if (songString && songString !== currentTrack) {
+            currentTrack = songString;
+            updateMarqueeText(songString);
+            document.title = `${songString} | Web Radio Prova`;
+
+            const lowerSong = songString.toLowerCase();
+            if (lowerSong.includes('web radio') || lowerSong.includes('presentazione') || lowerSong.includes('station id') || lowerSong.includes('jingle')) {
               coverImg.src = DEFAULT_LOGO;
             } else {
-              const coverUrl = await fetchCoverArt(finalDisplay);
+              const coverUrl = await fetchCoverArt(songString);
               coverImg.src = coverUrl;
             }
           }
+        } else {
+          if (trackTitleEl.textContent === "Caricamento brano in corso...") {
+            updateMarqueeText("Web Radio Prova - In diretta");
+          }
         }
       } catch (error) {
-        console.log('Errore aggiornamento metadati RPC:', error);
+        console.log('Errore info brano RPC:', error);
+        if (trackTitleEl.textContent === "Caricamento brano in corso...") {
+          updateMarqueeText("Web Radio Prova - In diretta");
+        }
       }
     }
 
